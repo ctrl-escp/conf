@@ -5,13 +5,12 @@
     "window.zoomLevel": 1,
     "editor.formatOnSave": false,
     "editor.detectIndentation": true,
-    "editor.tabSize": 4,
-    "editor.insertSpaces": true,
-    "prettier.tabWidth": 4,
+    "editor.tabSize": 2,
+    "editor.insertSpaces": false,
+    "prettier.tabWidth": 2,
     "prettier.eslintIntegration": true,
     "prettier.trailingComma": "es5",
     "editor.minimap.enabled": false,
-    "terminal.integrated.shell.windows": "C:\\WINDOWS\\System32\\wsl.exe",
     "vim.easymotion": true,
     "vim.useSystemClipboard": true,
     "vim.foldfix": true,
@@ -45,20 +44,6 @@
         }
     ],
     "editor.lineNumbers": "relative",
-    "sshfs.configs": [
-        {
-            "label": "tlvdev02",
-            "root": "/home/baryoshafat/p4/security-fps/tm_lib/clientside/fpm",
-            "host": "tlvdev02",
-            "port": 22,
-            "username": "baryoshafat",
-            "password": true,
-            "name": "sshfs.config"
-        }
-    ],
-    "[css]": {
-        "editor.foldingStrategy": "indentation"
-    },
     "editor.mouseWheelZoom": true,
     "workbench.statusBar.feedback.visible": false,
     "checkpoints.askForCheckpointName": false,

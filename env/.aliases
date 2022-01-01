@@ -1,0 +1,10 @@
+# Aliases
+
+# Generic
+alias ll='ls -laFh'
+alias l='ll -S'
+
+# Servo
+export servo='bruce@192.168.50.244'
+alias sshi='ssh -i ~/.ssh/laptop1_servo-id_rsa $servo'
+alias budgy-restart='sshi -t sudo -S systemctl restart budgy.service'

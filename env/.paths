@@ -1,0 +1,12 @@
+# Paths
+PATH="$PATH"
+
+## npm
+PATH="$HOME/.npm-global/bin:$PATH"
+
+## yarn
+PATH="$HOME/.yarn/bin:$PATH"
+PATH="$HOME/.config/yarn/global/node_modules/.bin:$PATH"
+PATH="$HOME/.local/bin:$PATH"
+
+export PATH="$PATH"
