@@ -1,5 +1,8 @@
 # Aliases
 
+# Import local aliases
+source ~/.aliases-*
+
 # Generic
 alias ll='ls -laFh'
 alias l='ll -S'
