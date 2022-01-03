@@ -94,4 +94,4 @@ export LANG=en.UTF-8
 
 source $ZSH/oh-my-zsh.sh
 source ~/.aliases
-source ~/.paths
+source ~/.envvars

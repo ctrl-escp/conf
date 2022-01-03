@@ -1,6 +1,4 @@
 # Paths
-PATH="$PATH"
-
 ## npm
 PATH="$HOME/.npm-global/bin:$PATH"
 
