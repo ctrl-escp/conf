@@ -5,7 +5,7 @@ cp -R vim ~/.vim
 
 echo "Copying zsh settings..."
 cp .aliases ~
-cp .paths ~
+cp .envvars ~
 cp .zshrc ~
 
 echo "Enjoy :)"
