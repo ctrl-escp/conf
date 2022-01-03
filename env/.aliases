@@ -1,7 +1,11 @@
 # Aliases
 
+# Prevent glob null results from showing up
+setopt +o cshnullglob
+setopt +o nomatch
+
 # Import local aliases
-source ~/.aliases-*
+source ~/.aliases-* > /dev/null 2>&1
 
 # Generic
 alias ll='ls -laFh'
