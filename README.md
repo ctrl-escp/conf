@@ -3,6 +3,13 @@ Making it simple to feel at home anywhere.
 
 ## Installation
 ### Install Oh-My-ZSH
+Make sure ZSH is installed on the system
+>sudo apt install zsh
+
+or 
+
+>brew install zsh
+
 Follow the [installation instructions](https://ohmyz.sh/#install):
 >$ sh -c "$(curl -fsSL https://raw.github.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
 
@@ -16,6 +23,5 @@ and fill it with the relevant aliases and exports. It will automatically be pick
 ### Setup Vim
 Enter vim and enter `:PlugInstall` to download all plugins.
 
-## Available Configurations
-### VS-Code
-Overwrite the vscode settings with the files in the [settings/vscode](settings/vscode) folder. 
+### Setup NVM
+Follow [these instructions](https://github.com/nvm-sh/nvm?tab=readme-ov-file#install--update-script).
