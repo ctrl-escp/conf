@@ -1,5 +1,3 @@
-# Aliases
-
 # Prevent glob null results from showing up
 setopt +o cshnullglob
 setopt +o nomatch
