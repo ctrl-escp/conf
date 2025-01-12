@@ -5,6 +5,7 @@ setopt +o nomatch
 # Generic
 alias ll='ls -laFh'
 alias l='ll -S'
+alias restart='shutdown -r now'
 
 # Import local aliases
 source ~/.aliases-* > /dev/null 2>&1
