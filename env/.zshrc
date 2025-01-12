@@ -90,7 +90,8 @@ HIST_STAMPS="yyyy-mm-dd"
 plugins=(git)
 
 # You may need to manually set your language environment
-export LANG=en.UTF-8
+export LANG="en_US.UTF-8"
+export LC_ALL="en_US.UTF-8"
 
 source $ZSH/oh-my-zsh.sh
 source ~/.aliases
