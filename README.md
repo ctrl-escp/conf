@@ -31,3 +31,6 @@ Enter vim and enter `:PlugInstall` to download all plugins.
 
 ### Setup NVM
 Follow [these instructions](https://github.com/nvm-sh/nvm?tab=readme-ov-file#install--update-script).
+```shell
+curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.1/install.sh | bash
+```
