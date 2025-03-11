@@ -1,0 +1,35 @@
+[core]
+    autocrlf = input
+    sshCommand = ssh
+    excludesfile = ~/.gitignore
+[column]
+    ui = auto
+[branch]
+    sort = -committerdate
+[tag]
+    sort = version:refname
+[diff]
+    algorithm = histogram
+    colorMoved = plain
+    mnemonicPrefix = true
+    renames = true
+[push]
+    default = simple
+    autoSetupRemote = true
+    followTags = true
+[fetch]
+    prune = true
+    pruneTags = true
+    all = true
+[commit]
+    verbose = true
+[rerere]
+    autoupdate = true
+[rebase]
+    updateRefs = true
+[pull]
+    rebase = true
+[help]
+    autocorrect = prompt
+[merge]
+    conflictstyle = zdiff3

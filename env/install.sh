@@ -7,5 +7,6 @@ echo "Copying zsh settings..."
 cp .aliases ~
 cp .envvars ~
 cp .zshrc ~
+cp .git* ~
 
 echo "Enjoy :)"
