@@ -1,3 +1,6 @@
+[user]
+    name = Ben Baryo
+    email = 19845603+ctrl-escp@users.noreply.github.com
 [core]
     autocrlf = input
     sshCommand = ssh

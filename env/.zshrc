@@ -1,98 +1,145 @@
-# Enable colors and change prompt
-autoload -U colors && colors
+# ====================================================================
+# ZSH Configuration - Modern & Optimized
+# ====================================================================
 
-# History in cache directory:
-HISTSIZE=10000
-SAVEHIST=10000
+# Enable colors and better shell options
+autoload -U colors && colors
+setopt AUTO_CD               # cd by typing directory name
+setopt CORRECT               # spell correction for commands
+setopt SHARE_HISTORY         # share history between sessions
+setopt HIST_IGNORE_DUPS      # ignore duplicate commands
+setopt HIST_IGNORE_SPACE     # ignore commands starting with space
+setopt HIST_VERIFY           # verify history expansion
+setopt EXTENDED_GLOB         # extended globbing patterns
+
+# ====================================================================
+# History Configuration
+# ====================================================================
+HISTSIZE=50000
+SAVEHIST=50000
 HISTFILE=~/.cache/zsh/history
 
-# Path to your oh-my-zsh installation.
+# ====================================================================
+# Oh My Zsh Configuration
+# ====================================================================
 export ZSH="$HOME/.oh-my-zsh"
 
-# vi mode
+# Theme - Choose your preferred one (uncomment one line)
+ZSH_THEME="agnoster"         # Modern, git-aware theme
+# ZSH_THEME="af-magic"       # Your original theme
+# ZSH_THEME="robbyrussell"   # Clean, minimal theme
+
+# Oh My Zsh options
+HYPHEN_INSENSITIVE="true"
+COMPLETION_WAITING_DOTS="true"
+HIST_STAMPS="yyyy-mm-dd"
+DISABLE_UPDATE_PROMPT="true"     # Auto-update oh-my-zsh
+ENABLE_CORRECTION="true"         # Enable command correction
+
+# ====================================================================
+# Plugins - Enhanced for Development
+# ====================================================================
+plugins=(
+  git                    # Git completions & aliases
+  docker                 # Docker completions
+  docker-compose         # Docker-compose completions
+  node                   # Node.js completions
+  npm                    # NPM completions
+  python                 # Python completions
+  brew                   # Homebrew completions
+  macos                  # macOS shortcuts (cmd+click, etc.)
+  colored-man-pages      # Colorful man pages
+  command-not-found      # Package suggestions when command not found
+)
+
+# ====================================================================
+# Vi Mode Configuration (Streamlined)
+# ====================================================================
 bindkey -v
-bindkey "^[f" forward-word
-bindkey "^[b" backward-word
-bindkey "^[[3~" delete-char
-export KEYTIMEOUT=5
+export KEYTIMEOUT=1             # Faster vi mode switching (was 5)
 
-# Use vim keys in tab complete menu:
-bindkey -v '^?' backward-delete-char
-
-# Change cursor shape for different vi modes.
+# Cursor shape changes for vi modes
 function zle-keymap-select {
-  if [[ ${KEYMAP} == vicmd ]] ||
-     [[ $1 = 'block' ]]; then
-    echo -ne '\e[1 q'
-  elif [[ ${KEYMAP} == main ]] ||
-       [[ ${KEYMAP} == viins ]] ||
-       [[ ${KEYMAP} = '' ]] ||
-       [[ $1 = 'beam' ]]; then
-    echo -ne '\e[5 q'
-  fi
+  case $KEYMAP in
+    vicmd) echo -ne '\e[1 q';;      # block cursor for command mode
+    viins|main) echo -ne '\e[5 q';; # beam cursor for insert mode
+  esac
 }
 zle -N zle-keymap-select
+
 zle-line-init() {
-    zle -K viins # initiate `vi insert` as keymap (can be removed if `bindkey -V` has been set elsewhere)
-    echo -ne "\e[5 q"
+  zle -K viins                     # start in insert mode
+  echo -ne "\e[5 q"                # beam cursor
 }
 zle -N zle-line-init
-echo -ne '\e[5 q' # Use beam shape cursor on startup.
-preexec() { echo -ne '\e[5 q' ;} # Use beam shape cursor for each new prompt.
 
-# Edit line in vim with ctrl-e:
+echo -ne '\e[5 q'                  # beam cursor on startup
+preexec() { echo -ne '\e[5 q'; }   # beam cursor for each prompt
+
+# ====================================================================
+# Key Bindings (Essential)
+# ====================================================================
+# Edit command line in vim
 autoload edit-command-line; zle -N edit-command-line
 bindkey '^e' edit-command-line
 
-# Fix ctrl+arrow to skip words forward-backwards
-### ctrl+arrows
-bindkey "\e[1;5C" forward-word
-bindkey "\e[1;5D" backward-word
-# urxvt
-bindkey "\eOc" forward-word
-bindkey "\eOd" backward-word
+# Basic navigation
+bindkey "^?" backward-delete-char
+bindkey "^[f" forward-word
+bindkey "^[b" backward-word
 
-### ctrl+delete
-bindkey "\e[3;5~" kill-word
-# urxvt
-bindkey "\e[3^" kill-word
+# Modern navigation (ctrl + arrow keys)
+bindkey "\e[1;5C" forward-word      # Ctrl+Right
+bindkey "\e[1;5D" backward-word     # Ctrl+Left
+bindkey "\eOc" forward-word         # Alt+Right (urxvt)
+bindkey "\eOd" backward-word        # Alt+Left (urxvt)
 
-### ctrl+backspace
-bindkey '^H' backward-kill-word
+# Deletion shortcuts
+bindkey '^H' backward-kill-word     # Ctrl+Backspace
+bindkey "\e[3;5~" kill-word         # Ctrl+Delete
 
-### ctrl+shift+delete
-bindkey "\e[3;6~" kill-line
-# urxvt
-bindkey "\e[3@" kill-line
-
-ZSH_THEME="af-magic"
-
-# Uncomment the following line to use hyphen-insensitive completion.
-# Case-sensitive completion must be off. _ and - will be interchangeable.
-HYPHEN_INSENSITIVE="true"
-
-# Uncomment the following line to display red dots whilst waiting for completion.
-COMPLETION_WAITING_DOTS="true"
-
-# Uncomment the following line if you want to change the command execution time
-# stamp shown in the history command output.
-# You can set one of the optional three formats:
-# "mm/dd/yyyy"|"dd.mm.yyyy"|"yyyy-mm-dd"
-# or set a custom format using the strftime function format specifications,
-# see 'man strftime' for details.
-HIST_STAMPS="yyyy-mm-dd"
-
-# Which plugins would you like to load?
-# Standard plugins can be found in ~/.oh-my-zsh/plugins/*
-# Custom plugins may be added to ~/.oh-my-zsh/custom/plugins/
-# Example format: plugins=(rails git textmate ruby lighthouse)
-# Add wisely, as too many plugins slow down shell startup.
-plugins=(git)
-
-# You may need to manually set your language environment
+# ====================================================================
+# Language Environment
+# ====================================================================
 export LANG="en_US.UTF-8"
 export LC_ALL="en_US.UTF-8"
 
+# ====================================================================
+# Load Oh My Zsh
+# ====================================================================
 source $ZSH/oh-my-zsh.sh
+
+# ====================================================================
+# External Plugins (Install separately for enhanced experience)
+# ====================================================================
+# zsh-autosuggestions: suggests commands as you type
+# Install: git clone https://github.com/zsh-users/zsh-autosuggestions ~/.oh-my-zsh/custom/plugins/zsh-autosuggestions
+[ -f ~/.oh-my-zsh/custom/plugins/zsh-autosuggestions/zsh-autosuggestions.zsh ] && source ~/.oh-my-zsh/custom/plugins/zsh-autosuggestions/zsh-autosuggestions.zsh
+
+# zsh-syntax-highlighting: highlights commands as you type
+# Install: git clone https://github.com/zsh-users/zsh-syntax-highlighting ~/.oh-my-zsh/custom/plugins/zsh-syntax-highlighting
+[ -f ~/.oh-my-zsh/custom/plugins/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh ] && source ~/.oh-my-zsh/custom/plugins/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
+
+# ====================================================================
+# Modern CLI Tools Integration (Install via: brew install fzf bat eza fd ripgrep)
+# ====================================================================
+# FZF - Fuzzy finder
+[ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
+
+# Modern ls replacement (eza is the maintained fork of exa)
+command -v eza >/dev/null && alias ls='eza --icons' && alias ll='eza -la --icons' && alias l='eza -la --icons -s size'
+
+# Modern cat replacement
+command -v bat >/dev/null && alias cat='bat'
+
+# Modern grep replacement
+command -v rg >/dev/null && alias grep='rg'
+
+# Modern find replacement
+command -v fd >/dev/null && alias find='fd'
+
+# ====================================================================
+# Load Custom Configuration Files
+# ====================================================================
 source ~/.aliases
 source ~/.envvars

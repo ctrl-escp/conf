@@ -2,10 +2,42 @@
 setopt +o cshnullglob
 setopt +o nomatch
 
-# Generic
+# ====================================================================
+# Basic Navigation & System
+# ====================================================================
 alias ll='ls -laFh'
 alias l='ll -S'
 alias restart='shutdown -r now'
 
+# Quick navigation
+alias ..='cd ..'
+alias ...='cd ../..'
+alias ....='cd ../../..'
+
+# ====================================================================
+# Development Tools
+# ====================================================================
+# Git shortcuts (complement the oh-my-zsh git plugin)
+alias gst='git status'
+alias glog='git log --oneline --graph --decorate'
+
+# Python shortcuts
+alias py='python3'
+alias serve='python3 -m http.server'
+
+# Network utilities
+alias myip='curl ipinfo.io/ip'
+
+# Docker shortcuts
+alias dps='docker ps'
+alias dimg='docker images'
+
+# NPM shortcuts
+alias nrs='npm run start'
+alias nrd='npm run dev'
+alias nrb='npm run build'
+
+# ====================================================================
 # Import local aliases
+# ====================================================================
 source ~/.aliases-* > /dev/null 2>&1
