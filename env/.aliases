@@ -5,9 +5,13 @@ setopt +o nomatch
 # ====================================================================
 # Basic Navigation & System
 # ====================================================================
-alias ll='ls -laFh'
-alias l='ll -S'
+alias ll='ls -laFh'          # Your preferred detailed list format
+alias l='ll -S'              # Sorted by size
 alias restart='shutdown -r now'
+
+# Optional modern alternatives (uncomment to use eza instead of ls)
+# alias ll='eza -la --classify=always -h'   # eza equivalent of ls -laFh
+# alias l='eza -la --classify=always -h -s size'  # eza sorted by size
 
 # Quick navigation
 alias ..='cd ..'

@@ -128,7 +128,7 @@ source $ZSH/oh-my-zsh.sh
 [ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
 
 # Modern ls replacement (eza is the maintained fork of exa)
-command -v eza >/dev/null && alias ls='eza --icons' && alias ll='eza -la --icons' && alias l='eza -la --icons -s size'
+# Note: Individual aliases are managed in ~/.aliases to avoid conflicts
 
 # Modern cat replacement
 command -v bat >/dev/null && alias cat='bat'
