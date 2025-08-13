@@ -5,6 +5,15 @@
 # 1. Installs external tools (zsh, oh-my-zsh, nvm, modern CLI tools)
 # 2. Applies your personal configuration files
 # Supports: macOS, Linux (Ubuntu/Debian, CentOS/RHEL/Fedora), Windows (WSL)
+#
+# USAGE: 
+#   Run this script from any directory. It will automatically find 
+#   configuration files relative to the script location.
+#   
+#   Examples:
+#     ./env/install.sh                    # From project root
+#     cd env && ./install.sh              # From env directory  
+#     /path/to/conf/env/install.sh        # With absolute path
 
 set -e  # Exit on any error
 
@@ -213,10 +222,12 @@ install_modern_cli_tools() {
                 fi
             done
             
-            # Setup fzf key bindings
-            if command_exists fzf; then
+            # Setup fzf key bindings (only if not already configured)
+            if command_exists fzf && [ ! -f ~/.fzf.zsh ]; then
                 print_status "Setting up fzf key bindings..."
                 $(brew --prefix)/opt/fzf/install --key-bindings --completion --no-update-rc
+            elif command_exists fzf; then
+                print_status "FZF key bindings already configured"
             fi
             ;;
             
@@ -228,6 +239,11 @@ install_modern_cli_tools() {
             if ! command_exists fzf; then
                 git clone --depth 1 https://github.com/junegunn/fzf.git ~/.fzf
                 ~/.fzf/install --key-bindings --completion --no-update-rc
+            elif [ ! -f ~/.fzf.zsh ]; then
+                print_status "Setting up fzf key bindings..."
+                ~/.fzf/install --key-bindings --completion --no-update-rc
+            else
+                print_status "FZF already installed and configured"
             fi
             
             # Install eza (newer systems)
@@ -269,21 +285,102 @@ install_modern_cli_tools() {
     print_success "Modern CLI tools installation completed"
 }
 
+# Install development language servers and linters
+install_development_tools() {
+    print_status "Installing development language servers and linters..."
+    
+    # Python development tools
+    if command_exists python3; then
+        print_status "Installing Python language servers and formatters..."
+        
+        local python_tools=("python-lsp-server[all]" "black" "isort" "flake8" "pylint" "mypy")
+        local failed_tools=()
+        
+        for tool in "${python_tools[@]}"; do
+            if ! python3 -m pip install --user "$tool" >/dev/null 2>&1; then
+                failed_tools+=("$tool")
+            fi
+        done
+        
+        if [ ${#failed_tools[@]} -eq 0 ]; then
+            print_success "Python development tools installed"
+        else
+            print_warning "Some Python tools failed to install: ${failed_tools[*]}"
+            print_status "You can try installing them manually with: pip install --user ${failed_tools[*]}"
+        fi
+    else
+        print_warning "Python3 not found, skipping Python language server installation"
+    fi
+    
+    # Node.js development tools (if NVM/Node is available)
+    if command_exists npm; then
+        print_status "Installing Node.js language servers and linters..."
+        npm install -g typescript typescript-language-server eslint prettier 2>/dev/null || {
+            print_warning "Failed to install some Node.js tools. You may need to install them manually."
+        }
+        print_success "Node.js development tools installed"
+    else
+        print_warning "npm not found, skipping Node.js language server installation"
+    fi
+    
+    # Shell scripting tools
+    case $DISTRO in
+        "macos")
+            if ! command_exists shellcheck; then
+                brew install shellcheck 2>/dev/null || print_warning "Failed to install shellcheck"
+            fi
+            ;;
+        "ubuntu"|"debian"|"wsl")
+            if ! command_exists shellcheck; then
+                sudo apt install -y shellcheck 2>/dev/null || print_warning "Failed to install shellcheck"
+            fi
+            ;;
+        "fedora")
+            if ! command_exists shellcheck; then
+                sudo dnf install -y ShellCheck 2>/dev/null || print_warning "Failed to install shellcheck"
+            fi
+            ;;
+        "centos"|"rhel")
+            if ! command_exists shellcheck; then
+                print_warning "Please manually install shellcheck for shell script linting"
+            fi
+            ;;
+    esac
+    
+    if command_exists shellcheck; then
+        print_success "Shellcheck installed for shell script linting"
+    fi
+    
+    print_success "Development tools installation completed"
+}
+
 # Set zsh as default shell
 set_default_shell() {
-    if [ "$SHELL" != "$(which zsh)" ]; then
-        print_status "Setting zsh as default shell..."
-        
-        # Add zsh to /etc/shells if not present
-        if ! grep -q "$(which zsh)" /etc/shells; then
-            echo "$(which zsh)" | sudo tee -a /etc/shells
-        fi
-        
-        # Change default shell
-        chsh -s "$(which zsh)"
+    local current_shell_name
+    current_shell_name=$(basename "$SHELL")
+    local target_zsh_path
+    target_zsh_path=$(which zsh)
+    
+    # Check if current shell is already zsh (any version of zsh)
+    if [ "$current_shell_name" = "zsh" ]; then
+        print_status "Zsh is already the default shell ($SHELL)"
+        return
+    fi
+    
+    # If we get here, we need to change the shell to zsh
+    print_status "Setting zsh as default shell (current: $SHELL)..."
+    
+    # Add zsh to /etc/shells if not present
+    if ! grep -q "$target_zsh_path" /etc/shells 2>/dev/null; then
+        print_status "Adding $target_zsh_path to /etc/shells..."
+        echo "$target_zsh_path" | sudo tee -a /etc/shells >/dev/null
+    fi
+    
+    # Change default shell
+    if chsh -s "$target_zsh_path"; then
         print_success "Zsh set as default shell (restart terminal to take effect)"
     else
-        print_status "Zsh is already the default shell"
+        print_error "Failed to set zsh as default shell. You may need to run: chsh -s $target_zsh_path"
     fi
 }
 
@@ -298,22 +395,44 @@ create_directories() {
     print_success "Directories created"
 }
 
-# Copy vim configuration
+# Copy vim configuration and install plugins
 install_vim_config() {
     print_status "Installing vim configuration..."
     
-    if [ -f ".vimrc" ]; then
-        cp .vimrc ~
+    # Get the directory where this script is located
+    local script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+    
+    if [ -f "$script_dir/.vimrc" ]; then
+        cp "$script_dir/.vimrc" ~
         print_success "Copied .vimrc"
     else
-        print_warning ".vimrc not found in current directory"
+        print_warning ".vimrc not found in $script_dir"
+        return
     fi
     
-    if [ -d "vim" ]; then
-        cp -R vim ~/.vim
+    if [ -d "$script_dir/vim" ]; then
+        cp -R "$script_dir/vim" ~/.vim
         print_success "Copied vim directory"
     else
-        print_warning "vim directory not found in current directory"
+        print_warning "vim directory not found in $script_dir"
+        return
+    fi
+    
+    # Install vim plugins automatically
+    if command_exists vim; then
+        print_status "Installing vim plugins with vim-plug..."
+        vim +PlugInstall +qall 2>/dev/null
+        print_success "Vim plugins installed"
+        
+        # Install CoC extensions
+        print_status "Installing CoC language server extensions..."
+        vim +"CocInstall -sync coc-python coc-tsserver coc-json coc-html coc-css coc-yaml coc-sh coc-prettier coc-eslint" +qall 2>/dev/null
+        print_success "CoC extensions installed"
+    else
+        print_warning "Vim not found, skipping plugin installation"
+        print_status "After installation, run these commands in vim:"
+        print_status "  :PlugInstall"
+        print_status "  :CocInstall coc-python coc-tsserver coc-sh coc-json coc-prettier coc-eslint"
     fi
 }
 
@@ -321,24 +440,36 @@ install_vim_config() {
 install_zsh_config() {
     print_status "Installing zsh configuration..."
     
+    # Get the directory where this script is located
+    local script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+    
     # Copy configuration files
     local files=(".aliases" ".envvars" ".zshrc")
+    local files_copied=0
+    
     for file in "${files[@]}"; do
-        if [ -f "$file" ]; then
-            cp "$file" ~
+        if [ -f "$script_dir/$file" ]; then
+            cp "$script_dir/$file" ~
             print_success "Copied $file"
+            ((files_copied++))
         else
-            print_warning "$file not found in current directory"
+            print_warning "$file not found in $script_dir"
         fi
     done
     
     # Copy any .git* files (like .gitconfig, .gitignore_global)
-    for file in .git*; do
+    local git_files_copied=0
+    for file in "$script_dir"/.git*; do
         if [ -f "$file" ]; then
             cp "$file" ~
-            print_success "Copied $file"
+            print_success "Copied $(basename "$file")"
+            ((git_files_copied++))
         fi
     done
+    
+    if [ $files_copied -eq 0 ] && [ $git_files_copied -eq 0 ]; then
+        print_warning "No configuration files found to copy"
+    fi
 }
 
 # Main installation function
@@ -365,6 +496,7 @@ main() {
     install_nvm
     install_zsh_plugins
     install_modern_cli_tools
+    install_development_tools
     set_default_shell
     
     echo
@@ -377,22 +509,28 @@ main() {
     
     echo
     echo "======================================================================"
-    print_success "🎉 Complete setup finished successfully!"
+    print_success "🎉 Setup completed!"
     echo "======================================================================"
     echo
-    print_status "What was installed/configured:"
-    echo "  ✅ Zsh shell with Oh My Zsh"
-    echo "  ✅ Node.js via NVM"
-    echo "  ✅ Modern CLI tools (fzf, bat, eza, fd, ripgrep)"
-    echo "  ✅ Enhanced zsh plugins (autosuggestions, syntax highlighting)"
-    echo "  ✅ Your personal vim configuration"
-    echo "  ✅ Your personal zsh configuration (.zshrc, .aliases, .envvars)"
+    print_status "Installation Summary:"
+    echo "  ✅ External tools verified/installed"
+    echo "  ✅ Development environment configured"
+    echo "  ✅ Modern CLI tools available"
+    echo "  ✅ Language servers and linters ready"
+    echo
+    print_status "Your development environment includes:"
+    echo "  🧠 Intellisense for Python, Node.js/TypeScript, and shell scripts"
+    echo "  🔍 Fuzzy file search with FZF integration"
+    echo "  📝 Auto-formatting and linting for multiple languages"
+    echo "  🎨 Modern vim with LSP support and enhanced UI"
+    echo "  ⚡ Enhanced zsh with autosuggestions and syntax highlighting"
     echo
     print_status "Next steps:"
     echo "1. Restart your terminal or run: exec zsh"
-    echo "2. Enjoy your supercharged development environment! 🚀"
+    echo "2. Open vim to verify plugins are working"
+    echo "3. Enjoy your development environment! 🚀"
     echo
-    print_warning "Note: Some changes may require a full terminal restart"
+    print_status "Note: Configuration files are managed in $(dirname "${BASH_SOURCE[0]}")"
 }
 
 # Check if running with sudo (we don't want that for most operations)
