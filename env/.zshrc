@@ -25,9 +25,10 @@ HISTFILE=~/.cache/zsh/history
 export ZSH="$HOME/.oh-my-zsh"
 
 # Theme - Choose your preferred one (uncomment one line)
-ZSH_THEME="agnoster"         # Modern, git-aware theme
-# ZSH_THEME="af-magic"       # Your original theme
-# ZSH_THEME="robbyrussell"   # Clean, minimal theme
+ZSH_THEME="af-magic-enhanced"  # Enhanced af-magic with better readability
+# ZSH_THEME="agnoster"         # Modern, git-aware theme
+# ZSH_THEME="af-magic"         # Original af-magic theme
+# ZSH_THEME="robbyrussell"     # Clean, minimal theme
 
 # Oh My Zsh options
 HYPHEN_INSENSITIVE="true"

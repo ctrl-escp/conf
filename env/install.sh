@@ -418,6 +418,13 @@ install_vim_config() {
         return
     fi
     
+    # Install custom oh-my-zsh theme
+    if [ -f "$script_dir/.oh-my-zsh/custom/themes/af-magic-enhanced.zsh-theme" ]; then
+        mkdir -p ~/.oh-my-zsh/custom/themes
+        cp "$script_dir/.oh-my-zsh/custom/themes/af-magic-enhanced.zsh-theme" ~/.oh-my-zsh/custom/themes/
+        print_success "Copied enhanced af-magic theme"
+    fi
+    
     # Install vim plugins automatically
     if command_exists vim; then
         print_status "Installing vim plugins with vim-plug..."
