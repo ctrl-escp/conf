@@ -131,7 +131,7 @@ source $ZSH/oh-my-zsh.sh
 # Note: Individual aliases are managed in ~/.aliases to avoid conflicts
 
 # Modern cat replacement
-command -v bat >/dev/null && alias cat='bat'
+# Note: bat aliasing moved to ~/.aliases for user control
 
 # Modern grep replacement
 command -v rg >/dev/null && alias grep='rg'

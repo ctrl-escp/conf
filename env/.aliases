@@ -13,6 +13,10 @@ alias restart='shutdown -r now'
 # alias ll='eza -la --classify=always -h'   # eza equivalent of ls -laFh
 # alias l='eza -la --classify=always -h -s size'  # eza sorted by size
 
+# Optional modern cat with syntax highlighting (uncomment if you want it)
+alias cat='bat --paging=never'           # bat without pager behavior
+# alias bat='bat --paging=always'          # bat with pager (for long files)
+
 # Quick navigation
 alias ..='cd ..'
 alias ...='cd ../..'
