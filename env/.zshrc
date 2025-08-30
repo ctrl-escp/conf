@@ -5,7 +5,8 @@
 # Enable colors and better shell options
 autoload -U colors && colors
 setopt AUTO_CD               # cd by typing directory name
-setopt CORRECT               # spell correction for commands
+unsetopt CORRECT
+unsetopt CORRECT_ALL
 setopt SHARE_HISTORY         # share history between sessions
 setopt HIST_IGNORE_DUPS      # ignore duplicate commands
 setopt HIST_IGNORE_SPACE     # ignore commands starting with space
