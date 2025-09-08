@@ -36,7 +36,6 @@ HYPHEN_INSENSITIVE="true"
 COMPLETION_WAITING_DOTS="true"
 HIST_STAMPS="yyyy-mm-dd"
 DISABLE_UPDATE_PROMPT="true"     # Auto-update oh-my-zsh
-ENABLE_CORRECTION="true"         # Enable command correction
 
 # ====================================================================
 # Plugins - Enhanced for Development
