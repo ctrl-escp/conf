@@ -111,6 +111,16 @@ export LC_ALL="en_US.UTF-8"
 source $ZSH/oh-my-zsh.sh
 
 # ====================================================================
+# Prompt Override
+# ====================================================================
+# Keep the af-magic colors/git info, but remove the dashed separator and right-side username.
+PROMPT='${FG[046]}%~$(git_prompt_info)$(hg_prompt_info) ${FG[201]}%(!.#.»)%{$reset_color%} '
+RPROMPT='%(?..%{$fg[red]%}%? ↵%{$reset_color%})'
+if (( $+functions[virtualenv_prompt_info] )); then
+  RPROMPT+='$(virtualenv_prompt_info)'
+fi
+
+# ====================================================================
 # External Plugins (Install separately for enhanced experience)
 # ====================================================================
 # zsh-autosuggestions: suggests commands as you type
