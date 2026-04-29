@@ -1,8 +1,8 @@
 # ====================================================================
-# ZSH Configuration - Modern & Optimized
+# ZSH Configuration
 # ====================================================================
 
-# Enable colors and better shell options
+# Shell options
 autoload -U colors && colors
 setopt AUTO_CD               # cd by typing directory name
 unsetopt CORRECT
@@ -25,20 +25,20 @@ HISTFILE=~/.cache/zsh/history
 # ====================================================================
 export ZSH="$HOME/.oh-my-zsh"
 
-# Theme - Choose your preferred one (uncomment one line)
-ZSH_THEME="af-magic-enhanced"  # Enhanced af-magic with better readability
-# ZSH_THEME="agnoster"         # Modern, git-aware theme
-# ZSH_THEME="af-magic"         # Original af-magic theme
-# ZSH_THEME="robbyrussell"     # Clean, minimal theme
+# Theme - uncomment one ZSH_THEME line to switch themes.
+ZSH_THEME="af-magic-enhanced"
+# ZSH_THEME="agnoster"         # Git-aware prompt theme.
+# ZSH_THEME="af-magic"         # Minimal prompt with directory and VCS info.
+# ZSH_THEME="robbyrussell"     # Default Oh My Zsh prompt theme.
 
 # Oh My Zsh options
 HYPHEN_INSENSITIVE="true"
 COMPLETION_WAITING_DOTS="true"
 HIST_STAMPS="yyyy-mm-dd"
-DISABLE_UPDATE_PROMPT="true"     # Auto-update oh-my-zsh
+DISABLE_UPDATE_PROMPT="true"     # Skip Oh My Zsh update prompts.
 
 # ====================================================================
-# Plugins - Enhanced for Development
+# Plugins
 # ====================================================================
 plugins=(
   git                    # Git completions & aliases
@@ -54,12 +54,12 @@ plugins=(
 )
 
 # ====================================================================
-# Vi Mode Configuration (Streamlined)
+# Vi Mode
 # ====================================================================
 bindkey -v
-export KEYTIMEOUT=1             # Faster vi mode switching (was 5)
+export KEYTIMEOUT=1             # vi mode switch timeout
 
-# Cursor shape changes for vi modes
+# Cursor shape by vi mode
 function zle-keymap-select {
   case $KEYMAP in
     vicmd) echo -ne '\e[1 q';;      # block cursor for command mode
@@ -78,7 +78,7 @@ echo -ne '\e[5 q'                  # beam cursor on startup
 preexec() { echo -ne '\e[5 q'; }   # beam cursor for each prompt
 
 # ====================================================================
-# Key Bindings (Essential)
+# Key Bindings
 # ====================================================================
 # Edit command line in vim
 autoload edit-command-line; zle -N edit-command-line
@@ -89,7 +89,7 @@ bindkey "^?" backward-delete-char
 bindkey "^[f" forward-word
 bindkey "^[b" backward-word
 
-# Modern navigation (ctrl + arrow keys)
+# Navigation
 bindkey "\e[1;5C" forward-word      # Ctrl+Right
 bindkey "\e[1;5D" backward-word     # Ctrl+Left
 bindkey "\eOc" forward-word         # Alt+Right (urxvt)
@@ -113,40 +113,40 @@ source $ZSH/oh-my-zsh.sh
 # ====================================================================
 # Prompt Override
 # ====================================================================
-# Keep the af-magic colors/git info, but remove the dashed separator and right-side username.
+# Prompt format.
+# Keep the right prompt quiet unless another prompt helper adds to it.
 PROMPT='${FG[046]}%~$(git_prompt_info)$(hg_prompt_info) ${FG[201]}%(!.#.»)%{$reset_color%} '
-RPROMPT='%(?..%{$fg[red]%}%? ↵%{$reset_color%})'
+RPROMPT=''
 if (( $+functions[virtualenv_prompt_info] )); then
   RPROMPT+='$(virtualenv_prompt_info)'
 fi
 
 # ====================================================================
-# External Plugins (Install separately for enhanced experience)
+# External Plugins
 # ====================================================================
-# zsh-autosuggestions: suggests commands as you type
-# Install: git clone https://github.com/zsh-users/zsh-autosuggestions ~/.oh-my-zsh/custom/plugins/zsh-autosuggestions
+# zsh-autosuggestions suggests completions from command history as you type.
+# Install with:
+#   git clone https://github.com/zsh-users/zsh-autosuggestions ~/.oh-my-zsh/custom/plugins/zsh-autosuggestions
 [ -f ~/.oh-my-zsh/custom/plugins/zsh-autosuggestions/zsh-autosuggestions.zsh ] && source ~/.oh-my-zsh/custom/plugins/zsh-autosuggestions/zsh-autosuggestions.zsh
 
-# zsh-syntax-highlighting: highlights commands as you type
-# Install: git clone https://github.com/zsh-users/zsh-syntax-highlighting ~/.oh-my-zsh/custom/plugins/zsh-syntax-highlighting
+# zsh-syntax-highlighting colors commands while you type.
+# Install with:
+#   git clone https://github.com/zsh-users/zsh-syntax-highlighting ~/.oh-my-zsh/custom/plugins/zsh-syntax-highlighting
 [ -f ~/.oh-my-zsh/custom/plugins/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh ] && source ~/.oh-my-zsh/custom/plugins/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
 
 # ====================================================================
-# Modern CLI Tools Integration (Install via: brew install fzf bat eza fd ripgrep)
+# CLI Tools Integration
 # ====================================================================
-# FZF - Fuzzy finder
+# Optional tools used below can be installed with:
+#   brew install fzf bat eza fd ripgrep
+
+# FZF - fuzzy finder shell integration.
 [ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
 
-# Modern ls replacement (eza is the maintained fork of exa)
-# Note: Individual aliases are managed in ~/.aliases to avoid conflicts
-
-# Modern cat replacement
-# Note: bat aliasing moved to ~/.aliases for user control
-
-# Modern grep replacement
+# Use ripgrep when available.
 command -v rg >/dev/null && alias grep='rg'
 
-# Modern find replacement
+# Use fd when available.
 command -v fd >/dev/null && alias find='fd'
 
 # ====================================================================
