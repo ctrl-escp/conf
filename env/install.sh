@@ -496,6 +496,41 @@ install_zsh_config() {
         fi
     done
     
+    # Deploy nvim config
+    local nvim_dir="$HOME/.config/nvim"
+    mkdir -p "$nvim_dir/lua"
+
+    # Always replace the shared config
+    if [ -f "$script_dir/nvim-conf.lua" ]; then
+        cp "$script_dir/nvim-conf.lua" "$nvim_dir/lua/nvim-conf.lua"
+        print_success "Copied nvim-conf.lua → ~/.config/nvim/lua/nvim-conf.lua"
+        ((files_copied++))
+    else
+        print_warning "nvim-conf.lua not found in $script_dir"
+    fi
+
+    # Handle init.lua: never blindly overwrite an existing file
+    local nvim_require_line='require("nvim-conf")'
+    if [ ! -f "$nvim_dir/init.lua" ]; then
+        cp "$script_dir/init.lua" "$nvim_dir/init.lua"
+        print_success "Copied init.lua → ~/.config/nvim/init.lua"
+        ((files_copied++))
+    elif grep -qF "$nvim_require_line" "$nvim_dir/init.lua"; then
+        print_success "nvim init.lua already configured"
+    else
+        # Inject require line before the first non-comment, non-blank line
+        awk -v line="$nvim_require_line" '
+            !inserted && !/^--/ && !/^[[:space:]]*$/ {
+                print line "\n"
+                inserted=1
+            }
+            { print }
+            END { if (!inserted) print "\n" line }
+        ' "$nvim_dir/init.lua" > /tmp/.init_lua_patched && mv /tmp/.init_lua_patched "$nvim_dir/init.lua"
+        print_success "Injected '$nvim_require_line' into existing init.lua"
+        ((files_copied++))
+    fi
+
     if [ $files_copied -eq 0 ] && [ $git_files_copied -eq 0 ]; then
         print_warning "No configuration files found to copy"
     fi
