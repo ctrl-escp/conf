@@ -451,9 +451,9 @@ install_zsh_config() {
     local script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
     
     # Copy configuration files
-    local files=(".aliases" ".envvars" ".zshrc")
+    local files=(".aliases" ".envvars" ".zshrc2")
     local files_copied=0
-    
+
     for file in "${files[@]}"; do
         if [ -f "$script_dir/$file" ]; then
             cp "$script_dir/$file" ~
@@ -463,6 +463,28 @@ install_zsh_config() {
             print_warning "$file not found in $script_dir"
         fi
     done
+
+    # Handle .zshrc: never blindly overwrite an existing file
+    local source_line='source ~/.zshrc2'
+    if [ ! -f ~/.zshrc ]; then
+        cp "$script_dir/.zshrc" ~/.zshrc
+        print_success "Copied .zshrc"
+        ((files_copied++))
+    elif grep -qF "$source_line" ~/.zshrc; then
+        print_success ".zshrc already configured"
+    else
+        # Inject source line before the first non-comment, non-blank line
+        awk -v line="$source_line" '
+            !inserted && /^[^#[:space:]]/ {
+                print line "\n"
+                inserted=1
+            }
+            { print }
+            END { if (!inserted) print "\n" line }
+        ' ~/.zshrc > /tmp/.zshrc_patched && mv /tmp/.zshrc_patched ~/.zshrc
+        print_success "Injected '$source_line' into existing .zshrc"
+        ((files_copied++))
+    fi
     
     # Copy any .git* files (like .gitconfig, .gitignore_global)
     local git_files_copied=0
