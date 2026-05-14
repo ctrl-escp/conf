@@ -2,7 +2,7 @@
 # ====================================================================
 # Complete Development Environment Setup
 # ====================================================================
-# 1. Installs external tools (zsh, oh-my-zsh, nvm, modern CLI tools)
+# 1. Installs external tools (zsh, oh-my-zsh, nvm, nvim, etc.)
 # 2. Applies your personal configuration files
 # Supports: macOS, Linux (Ubuntu/Debian, CentOS/RHEL/Fedora), Windows (WSL)
 #
