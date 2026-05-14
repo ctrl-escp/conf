@@ -451,7 +451,7 @@ install_zsh_config() {
     local script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
     
     # Copy configuration files
-    local files=(".aliases" ".envvars" ".zshrc2")
+    local files=(".aliases" ".aliases-local" ".envvars" ".zshrc2")
     local files_copied=0
 
     for file in "${files[@]}"; do
