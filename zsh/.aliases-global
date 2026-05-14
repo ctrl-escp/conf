@@ -5,6 +5,7 @@ setopt +o nomatch
 # ====================================================================
 # Basic Navigation & System
 # ====================================================================
+alias ls='ls --color=auto'
 alias ll='ls -laFh'          # Your preferred detailed list format
 alias l='ll -S'              # Sorted by size
 alias lls='ls -aF'           # Wide list with hidden files and explicit kinds of files
