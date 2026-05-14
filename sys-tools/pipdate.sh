@@ -24,7 +24,7 @@ else
     USER_FLAG=(--user)
 fi
 
-OUTDATED=$($PYEXEC -m pip list -o 2>&1 | awk 'FNR > 2 {print $1}') || {
+OUTDATED=$($PYEXEC -m pip list -o 2>/dev/null | awk 'FNR > 2 {print $1}') || {
     echo "Failed to query pip outdated packages. Aborting."
     exit 1
 }
