@@ -235,10 +235,10 @@ install_modern_cli_tools() {
             sudo apt install -y fd-find ripgrep bat
             
             # Install fzf
-            if ! command_exists fzf; then
+            if [ ! -d ~/.fzf ]; then
                 git clone --depth 1 https://github.com/junegunn/fzf.git ~/.fzf
-                ~/.fzf/install --key-bindings --completion --no-update-rc
-            elif [ ! -f ~/.fzf.zsh ]; then
+            fi
+            if [ ! -f ~/.fzf.zsh ]; then
                 print_status "Setting up fzf key bindings..."
                 ~/.fzf/install --key-bindings --completion --no-update-rc
             else
