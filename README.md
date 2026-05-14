@@ -68,7 +68,7 @@ Pass one or more component names to install only those, skipping everything else
 | oh-my-zsh theme                | `~/.oh-my-zsh/custom/themes/`                        |
 | `vim/.vimrc` + runtime         | `~/.vimrc`, `~/.vim/`                                |
 | `nvim/nvim-conf.lua`           | `~/.config/nvim/lua/nvim-conf.lua` (always replaced) |
-| `git/.gitconfig`, `.gitignore` | `~/`                                                 |
+| `git/.gitconfig`, `.gitignore` | `~/` (optional; `./install.sh git`; created once)    |
 | `eslint/`                      | `~/.config/eslint/` + `npm install`                  |
 | `sys-tools/*.sh`               | symlinked into `/usr/local/bin/`                     |
 

@@ -551,9 +551,14 @@ install_git_config() {
 
     for file in "$script_dir/git"/.*; do
         if [ -f "$file" ]; then
-            cp "$file" ~
-            print_success "Copied $(basename "$file")"
-            ((++files_copied))
+            local dest="$HOME/$(basename "$file")"
+            if [ -f "$dest" ]; then
+                print_status "$(basename "$file") already exists, skipping"
+            else
+                cp "$file" "$dest"
+                print_success "Copied $(basename "$file")"
+                ((++files_copied))
+            fi
         fi
     done
 
@@ -721,7 +726,6 @@ main() {
 
         create_directories
         install_zsh_config
-        install_git_config
         install_vim_config
         install_nvim_config
         install_eslint_config
