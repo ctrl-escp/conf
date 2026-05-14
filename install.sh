@@ -442,7 +442,7 @@ install_zsh_config() {
     fi
 
     # Always-replace files
-    local files=(".aliases" ".aliases-local" ".envvars" ".zshrc2")
+    local files=(".envvars" ".zshrc2")
     for file in "${files[@]}"; do
         if [ -f "$zsh_dir/$file" ]; then
             cp "$zsh_dir/$file" ~
@@ -452,6 +452,40 @@ install_zsh_config() {
             print_warning "$file not found in zsh/"
         fi
     done
+
+    # Handle .aliases: inject the glob import if missing, never blindly overwrite
+    local aliases_line='source ~/.aliases-*'
+    if [ ! -f ~/.aliases ]; then
+        cp "$zsh_dir/.aliases" ~/.aliases
+        print_success "Copied .aliases"
+        ((files_copied++))
+    elif grep -qF "$aliases_line" ~/.aliases; then
+        print_success ".aliases already configured"
+    else
+        echo "" >> ~/.aliases
+        echo "$aliases_line > /dev/null 2>&1" >> ~/.aliases
+        print_success "Injected alias glob import into existing .aliases"
+        ((files_copied++))
+    fi
+
+    # Handle .aliases-local: only create if it doesn't exist; seed brewdate on macOS
+    if [ ! -f ~/.aliases-local ]; then
+        if [[ "$DISTRO" == "macos" ]]; then
+            echo "alias brewdate='brew update && brew upgrade'" > ~/.aliases-local
+            print_success "Created .aliases-local with brewdate alias"
+        else
+            cp "$zsh_dir/.aliases-local" ~/.aliases-local
+            print_success "Created .aliases-local"
+        fi
+        ((files_copied++))
+    else
+        if [[ "$DISTRO" == "macos" ]] && ! grep -qF "brewdate" ~/.aliases-local; then
+            echo "alias brewdate='brew update && brew upgrade'" >> ~/.aliases-local
+            print_success "Added brewdate alias to .aliases-local"
+        else
+            print_success ".aliases-local already exists, skipping"
+        fi
+    fi
 
     # Handle .zshrc: never blindly overwrite an existing file
     local source_line='source ~/.zshrc2'
@@ -594,7 +628,8 @@ install_sys_tools() {
     script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
     local tools_dir="$script_dir/sys-tools"
 
-    local tools=("aptdate" "pipdate" "ollama-update")
+    local tools=("pipdate" "ollama-update")
+    [[ "$DISTRO" != "macos" ]] && tools=("aptdate" "${tools[@]}")
     for name in "${tools[@]}"; do
         local src="$tools_dir/${name}.sh"
 
@@ -611,72 +646,77 @@ install_sys_tools() {
 }
 
 # Main installation function
+install_component() {
+    case "$1" in
+        zsh)       install_zsh_config ;;
+        git)       install_git_config ;;
+        vim)       install_vim_config ;;
+        nvim)      install_nvim_config ;;
+        eslint)    install_eslint_config ;;
+        zed)       install_zed_config ;;
+        tools)     install_sys_tools ;;
+        *)         print_error "Unknown component: $1"; exit 1 ;;
+    esac
+}
+
 main() {
-    echo "======================================================================"
-    echo "🚀 Complete Development Environment Setup"
-    echo "======================================================================"
-    echo
-    
     detect_os
-    
+
     if [[ $OS == "unknown" ]]; then
         print_error "Unsupported operating system: $OSTYPE"
         exit 1
     fi
-    
-    echo
-    print_section "PHASE 1: Installing External Tools"
-    echo "======================================================================"
-    
-    install_package_manager
-    install_zsh
-    install_oh_my_zsh
-    install_nvm
-    install_zsh_plugins
-    install_modern_cli_tools
-    install_development_tools
-    set_default_shell
-    
-    echo
-    print_section "PHASE 2: Deploying Configuration Files"
-    echo "======================================================================"
-    
-    create_directories
-    install_zsh_config
-    install_git_config
-    install_vim_config
-    install_nvim_config
-    install_eslint_config
-    install_sys_tools
 
-    if [[ " $* " == *" zed "* ]]; then
-        install_zed_config
+    if [[ $# -gt 0 ]]; then
+        echo "======================================================================"
+        echo "Installing: $*"
+        echo "======================================================================"
+        echo
+        for component in "$@"; do
+            install_component "$component"
+        done
+    else
+        echo "======================================================================"
+        echo "🚀 Complete Development Environment Setup"
+        echo "======================================================================"
+        echo
+
+        print_section "PHASE 1: Installing External Tools"
+        echo "======================================================================"
+
+        install_package_manager
+        install_zsh
+        install_oh_my_zsh
+        install_nvm
+        install_zsh_plugins
+        install_modern_cli_tools
+        install_development_tools
+        set_default_shell
+
+        echo
+        print_section "PHASE 2: Deploying Configuration Files"
+        echo "======================================================================"
+
+        create_directories
+        install_zsh_config
+        install_git_config
+        install_vim_config
+        install_nvim_config
+        install_eslint_config
+        install_sys_tools
+
+        echo
+        print_status "Next steps:"
+        echo "1. Restart your terminal or run: exec zsh"
+        echo "2. Open nvim to let lazy.nvim install plugins"
+        echo
+        print_status "Note: Configuration files are managed in $(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
     fi
-    
+
     echo
     echo "======================================================================"
-    print_success "🎉 Setup completed!"
+    print_success "Done!"
     echo "======================================================================"
-    echo
-    print_status "Installation Summary:"
-    echo "  ✅ External tools verified/installed"
-    echo "  ✅ Development environment configured"
-    echo "  ✅ Modern CLI tools available"
-    echo "  ✅ Language servers and linters ready"
-    echo
-    print_status "Your development environment includes:"
-    echo "  🧠 Intellisense for Python, Node.js/TypeScript, and shell scripts"
-    echo "  🔍 Fuzzy file search with FZF integration"
-    echo "  📝 Auto-formatting and linting for multiple languages"
-    echo "  🎨 Modern vim with LSP support and enhanced UI"
-    echo "  ⚡ Enhanced zsh with autosuggestions and syntax highlighting"
-    echo
-    print_status "Next steps:"
-    echo "1. Restart your terminal or run: exec zsh"
-    echo "2. Open vim to verify plugins are working"
-    echo "3. Enjoy your development environment! 🚀"
-    echo
-    print_status "Note: Configuration files are managed in $(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 }
 
 # Check if running with sudo (we don't want that for most operations)
