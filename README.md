@@ -1,36 +1,105 @@
-# Configuration Repo
-Making it simple to feel at home anywhere.
+# conf
 
-## Installation
-### Install Oh-My-ZSH
-Make sure zsh is installed on the system
-```shell
-sudo apt install zsh
-```
-or 
-```shell
-brew install zsh
-```
+Personal development environment. Run `install.sh` on a new machine to get everything set up.
 
-Follow the [installation instructions](https://ohmyz.sh/#install):
-```shell
-sh -c "$(curl -fsSL https://raw.github.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
-```
+## Install
 
-### Environment
-To install the environment simply cd into the [env](env) directory and
-```shell
+```bash
 ./install.sh
 ```
 
-To add any local aliases simply add a file to the home folder which starts with `.aliases-`, like `.aliases-server`
-and fill it with the relevant aliases and exports. It will automatically be picked up when a session starts.
+Full setup: installs external tools and deploys all configuration files. Safe to re-run — existing local config files are never blindly overwritten (see [Update pattern](#update-pattern) below).
 
-### Setup Vim
-Enter vim and enter `:PlugInstall` to download all plugins.
+### Install specific components
 
-### Setup NVM
-Follow [these instructions](https://github.com/nvm-sh/nvm?tab=readme-ov-file#install--update-script).
-```shell
-curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.1/install.sh | bash
+Pass one or more component names to install only those, skipping everything else:
+
+```bash
+./install.sh zed
+./install.sh nvim zed
+./install.sh zsh git nvim vim eslint tools zed
 ```
+
+| Argument | What it installs |
+|---|---|
+| `zsh` | zsh config files |
+| `git` | git config files |
+| `vim` | vim config and runtime files |
+| `nvim` | nvim config files |
+| `eslint` | global ESLint config + `npm install` |
+| `zed` | Zed editor settings |
+| `tools` | sys-tools symlinks in `/usr/local/bin` |
+
+---
+
+## What gets installed
+
+### External tools
+
+| Tool | macOS | Ubuntu/Debian | Fedora | RHEL/CentOS |
+|---|---|---|---|---|
+| Homebrew | ✓ | — | — | — |
+| zsh | brew | apt | dnf | yum |
+| oh-my-zsh | ✓ | ✓ | ✓ | ✓ |
+| NVM + Node LTS | ✓ | ✓ | ✓ | ✓ |
+| zsh-autosuggestions | ✓ | ✓ | ✓ | ✓ |
+| zsh-syntax-highlighting | ✓ | ✓ | ✓ | ✓ |
+| fzf, bat, eza, fd, ripgrep | brew | apt | dnf | manual |
+| Python LSP + formatters | ✓ | ✓ | ✓ | ✓ |
+| typescript-language-server, eslint, prettier | ✓ | ✓ | ✓ | ✓ |
+| shellcheck | brew | apt | dnf | — |
+
+### Configuration files
+
+| What | Deployed to |
+|---|---|
+| `zsh/.zshrc2` | `~/.zshrc2` (always replaced) |
+| `zsh/.aliases`, `.envvars` | `~/` (always replaced) |
+| `zsh/.aliases-local` | `~/` (starter template, always replaced) |
+| oh-my-zsh theme | `~/.oh-my-zsh/custom/themes/` |
+| `vim/.vimrc` + runtime | `~/.vimrc`, `~/.vim/` |
+| `nvim/nvim-conf.lua` | `~/.config/nvim/lua/nvim-conf.lua` (always replaced) |
+| `git/.gitconfig`, `.gitignore` | `~/` |
+| `eslint/` | `~/.config/eslint/` + `npm install` |
+| `sys-tools/*.sh` | symlinked into `/usr/local/bin/` |
+
+### Optional: Zed (`./install.sh zed`)
+
+| What | Deployed to |
+|---|---|
+| `zed/settings.json` | `~/.config/zed/settings.json` (always replaced) |
+
+---
+
+## Update pattern
+
+Two files are intentionally never overwritten on update:
+
+- **`~/.zshrc`** — sources `~/.zshrc2` and holds machine-local additions. On first install, if no `.zshrc` exists it's copied from the repo; otherwise `source ~/.zshrc2` is injected at the top. Subsequent installs only replace `.zshrc2`.
+- **`~/.config/nvim/init.lua`** — requires `nvim-conf` and holds machine-local additions. Same injection pattern. Subsequent installs only replace `nvim-conf.lua`.
+
+Machine-local aliases go in `~/.aliases-<name>` (e.g. `~/.aliases-work`) — picked up automatically, never touched by this repo.
+
+Local nvim plugins go in `~/.config/nvim/lua/local-plugins.lua` returning a lazy.nvim spec — auto-imported if present.
+
+---
+
+## Tools (`sys-tools/`)
+
+Symlinked into `/usr/local/bin` by `install.sh`.
+
+| Command | What it does |
+|---|---|
+| `aptdate` | `apt update && dist-upgrade && autoremove`. Pass `clean` to purge cache first. |
+| `pipdate [python]` | Upgrades all outdated pip packages. Accepts an optional Python executable. |
+| `ollama-update` | Pulls every installed Ollama model and reports which ones changed. |
+
+---
+
+## Zed settings
+
+`zed/settings.json` contains portable settings only. The following are intentionally excluded and must be configured per-machine after install:
+
+- **`agent_servers`** — custom ACP servers with local project paths
+- **`languages.JavaScript.formatter`** — external formatter command
+- **`context_servers`** — MCP context servers with local paths
