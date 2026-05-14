@@ -10,6 +10,7 @@ alias ll='ls -laFh'          # Your preferred detailed list format
 alias l='ll -S'              # Sorted by size
 alias lls='ls -aF'           # Wide list with hidden files and explicit kinds of files
 alias restart='shutdown -r now'
+alias reload='source ~/.zshrc'
 
 # Optional modern alternatives (uncomment to use eza instead of ls)
 # alias ll='eza -la --classify=always -h'   # eza equivalent of ls -laFh
