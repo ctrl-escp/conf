@@ -287,6 +287,12 @@ install_modern_cli_tools() {
                     sudo apt install -y eza
                 fi
             fi
+
+            # Install tree-sitter CLI (required by nvim-treesitter to build parsers)
+            if ! command_exists tree-sitter; then
+                print_status "Installing tree-sitter-cli via npm..."
+                npm install -g tree-sitter-cli
+            fi
             ;;
             
         "fedora")
