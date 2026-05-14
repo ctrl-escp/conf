@@ -7,6 +7,7 @@ setopt +o nomatch
 # ====================================================================
 alias ll='ls -laFh'          # Your preferred detailed list format
 alias l='ll -S'              # Sorted by size
+alias lls='ls -aF'          # Wide list with hidden files and explicit kinds of files
 alias restart='shutdown -r now'
 
 # Optional modern alternatives (uncomment to use eza instead of ls)
