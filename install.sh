@@ -233,6 +233,36 @@ install_modern_cli_tools() {
         "ubuntu"|"debian"|"wsl")
             # Install via apt where available
             sudo apt install -y fd-find ripgrep bat
+
+            # Install Neovim 0.11+ from GitHub releases (apt package is too old)
+            local needs_nvim=true
+            if command_exists nvim; then
+                local nvim_ver
+                nvim_ver=$(nvim --version | head -1 | sed 's/NVIM v//')
+                if printf '%s\n%s\n' "0.11" "$nvim_ver" | sort -V -C 2>/dev/null; then
+                    needs_nvim=false
+                    print_status "Neovim $nvim_ver already installed"
+                fi
+            fi
+            if $needs_nvim; then
+                print_status "Installing Neovim 0.11+..."
+                local arch
+                arch=$(uname -m)
+                local nvim_archive
+                case "$arch" in
+                    x86_64)  nvim_archive="nvim-linux-x86_64.tar.gz" ;;
+                    aarch64) nvim_archive="nvim-linux-arm64.tar.gz" ;;
+                    *)       print_warning "Unsupported arch $arch, skipping Neovim install" ; nvim_archive="" ;;
+                esac
+                if [[ -n "$nvim_archive" ]]; then
+                    local tmpdir
+                    tmpdir=$(mktemp -d)
+                    curl -sL "https://github.com/neovim/neovim/releases/latest/download/$nvim_archive" -o "$tmpdir/nvim.tar.gz"
+                    sudo tar -xzf "$tmpdir/nvim.tar.gz" -C /usr/local --strip-components=1
+                    rm -rf "$tmpdir"
+                    print_success "Neovim installed: $(nvim --version | head -1)"
+                fi
+            fi
             
             # Install fzf
             if [ ! -d ~/.fzf ]; then
@@ -555,15 +585,8 @@ install_nvim_config() {
     elif grep -qF "$nvim_require_line" "$nvim_dir/init.lua"; then
         print_success "nvim init.lua already configured"
     else
-        awk -v line="$nvim_require_line" '
-            !inserted && !/^--/ && !/^[[:space:]]*$/ {
-                print line "\n"
-                inserted=1
-            }
-            { print }
-            END { if (!inserted) print "\n" line }
-        ' "$nvim_dir/init.lua" > /tmp/.init_lua_patched && mv /tmp/.init_lua_patched "$nvim_dir/init.lua"
-        print_success "Injected '$nvim_require_line' into existing init.lua"
+        printf '\n%s\n' "$nvim_require_line" >> "$nvim_dir/init.lua"
+        print_success "Appended '$nvim_require_line' to existing init.lua"
         ((++files_copied))
     fi
 
