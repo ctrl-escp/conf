@@ -211,7 +211,7 @@ install_modern_cli_tools() {
     
     case $DISTRO in
         "macos")
-            local tools=("fzf" "bat" "eza" "fd" "ripgrep")
+            local tools=("fzf" "bat" "eza" "fd" "ripgrep" "tree-sitter-cli")
             for tool in "${tools[@]}"; do
                 if ! command_exists "$tool"; then
                     print_status "Installing $tool..."

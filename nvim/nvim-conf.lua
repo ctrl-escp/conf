@@ -35,13 +35,17 @@ local plugin_specs = {
     "nvim-treesitter/nvim-treesitter",
     build = ":TSUpdate",
     config = function()
-      require("nvim-treesitter.configs").setup({
-        ensure_installed = {
-          "bash", "javascript", "typescript", "tsx",
-          "python", "lua", "json", "yaml", "html", "css",
-        },
-        highlight = { enable = true },
-        indent   = { enable = true },
+      -- v1.x removed the configs module; install/highlight/indent are separate
+      require("nvim-treesitter.install").install({
+        "bash", "javascript", "typescript", "tsx",
+        "python", "lua", "json", "yaml", "html", "css",
+      }, { summary = false })
+      vim.api.nvim_create_autocmd("FileType", {
+        callback = function()
+          if pcall(vim.treesitter.start) then
+            vim.bo.indentexpr = "v:lua.require'nvim-treesitter'.indentexpr()"
+          end
+        end,
       })
     end,
   },
@@ -331,12 +335,12 @@ require("mason-lspconfig").setup({
   automatic_installation = true,
 })
 
-local lspconfig    = require("lspconfig")
 local capabilities = require("cmp_nvim_lsp").default_capabilities()
 
 for _, server in ipairs({ "bashls", "ts_ls", "pyright" }) do
-  lspconfig[server].setup({ capabilities = capabilities })
+  vim.lsp.config(server, { capabilities = capabilities })
 end
+vim.lsp.enable({ "bashls", "ts_ls", "pyright" })
 
 vim.api.nvim_create_autocmd("LspAttach", {
   callback = function(ev)
