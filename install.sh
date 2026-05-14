@@ -545,6 +545,30 @@ install_nvim_config() {
     fi
 }
 
+# Symlink sys-tools scripts into /usr/local/bin
+install_sys_tools() {
+    print_status "Installing sys-tools..."
+
+    local script_dir
+    script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+    local tools_dir="$script_dir/sys-tools"
+
+    local tools=("aptdate" "pipdate")
+    for name in "${tools[@]}"; do
+        local src="$tools_dir/${name}.sh"
+
+        if [ ! -f "$src" ]; then
+            print_warning "sys-tools/${name}.sh not found — skipping"
+            continue
+        fi
+
+        chmod +x "$src"
+        sudo rm -f "/usr/local/bin/$name"
+        sudo ln -s "$src" "/usr/local/bin/$name"
+        print_success "Linked $name → $src"
+    done
+}
+
 # Main installation function
 main() {
     echo "======================================================================"
@@ -581,6 +605,7 @@ main() {
     install_git_config
     install_vim_config
     install_nvim_config
+    install_sys_tools
     
     echo
     echo "======================================================================"
