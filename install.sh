@@ -447,7 +447,7 @@ install_zsh_config() {
         if [ -f "$zsh_dir/$file" ]; then
             cp "$zsh_dir/$file" ~
             print_success "Copied $file"
-            ((files_copied++))
+            ((++files_copied))
         else
             print_warning "$file not found in zsh/"
         fi
@@ -458,14 +458,14 @@ install_zsh_config() {
     if [ ! -f ~/.aliases ]; then
         cp "$zsh_dir/.aliases" ~/.aliases
         print_success "Copied .aliases"
-        ((files_copied++))
+        ((++files_copied))
     elif grep -qF "$aliases_line" ~/.aliases; then
         print_success ".aliases already configured"
     else
         echo "" >> ~/.aliases
         echo "$aliases_line > /dev/null 2>&1" >> ~/.aliases
         print_success "Injected alias glob import into existing .aliases"
-        ((files_copied++))
+        ((++files_copied))
     fi
 
     # Handle .aliases-local: only create if it doesn't exist; seed brewdate on macOS
@@ -477,7 +477,7 @@ install_zsh_config() {
             cp "$zsh_dir/.aliases-local" ~/.aliases-local
             print_success "Created .aliases-local"
         fi
-        ((files_copied++))
+        ((++files_copied))
     else
         if [[ "$DISTRO" == "macos" ]] && ! grep -qF "brewdate" ~/.aliases-local; then
             echo "alias brewdate='brew update && brew upgrade'" >> ~/.aliases-local
@@ -492,13 +492,13 @@ install_zsh_config() {
     if [ ! -f ~/.zshrc ]; then
         cp "$zsh_dir/.zshrc" ~/.zshrc
         print_success "Copied .zshrc"
-        ((files_copied++))
+        ((++files_copied))
     elif grep -qF "$source_line" ~/.zshrc; then
         print_success ".zshrc already configured"
     else
         printf '\n%s\n' "$source_line" >> ~/.zshrc
         print_success "Appended '$source_line' to existing .zshrc"
-        ((files_copied++))
+        ((++files_copied))
     fi
 
     if [ $files_copied -eq 0 ]; then
@@ -517,7 +517,7 @@ install_git_config() {
         if [ -f "$file" ]; then
             cp "$file" ~
             print_success "Copied $(basename "$file")"
-            ((files_copied++))
+            ((++files_copied))
         fi
     done
 
@@ -541,7 +541,7 @@ install_nvim_config() {
     if [ -f "$nvim_src/nvim-conf.lua" ]; then
         cp "$nvim_src/nvim-conf.lua" "$nvim_dir/lua/nvim-conf.lua"
         print_success "Copied nvim-conf.lua → ~/.config/nvim/lua/nvim-conf.lua"
-        ((files_copied++))
+        ((++files_copied))
     else
         print_warning "nvim/nvim-conf.lua not found"
     fi
@@ -551,7 +551,7 @@ install_nvim_config() {
     if [ ! -f "$nvim_dir/init.lua" ]; then
         cp "$nvim_src/init.lua" "$nvim_dir/init.lua"
         print_success "Copied init.lua → ~/.config/nvim/init.lua"
-        ((files_copied++))
+        ((++files_copied))
     elif grep -qF "$nvim_require_line" "$nvim_dir/init.lua"; then
         print_success "nvim init.lua already configured"
     else
@@ -564,7 +564,7 @@ install_nvim_config() {
             END { if (!inserted) print "\n" line }
         ' "$nvim_dir/init.lua" > /tmp/.init_lua_patched && mv /tmp/.init_lua_patched "$nvim_dir/init.lua"
         print_success "Injected '$nvim_require_line' into existing init.lua"
-        ((files_copied++))
+        ((++files_copied))
     fi
 
     if [ $files_copied -eq 0 ]; then
