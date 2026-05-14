@@ -478,7 +478,7 @@ install_zsh_config() {
     fi
 
     # Always-replace files
-    local files=(".envvars" ".zshrc2")
+    local files=(".envvars" ".zshrc2" ".aliases-global")
     for file in "${files[@]}"; do
         if [ -f "$zsh_dir/$file" ]; then
             cp "$zsh_dir/$file" ~

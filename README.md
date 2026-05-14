@@ -62,6 +62,7 @@ Pass one or more component names to install only those, skipping everything else
 | ------------------------------ | ---------------------------------------------------- |
 | `zsh/.zshrc2`                  | `~/.zshrc2` (always replaced)                        |
 | `zsh/.envvars`                 | `~/` (always replaced)                               |
+| `zsh/.aliases-global`          | `~/` (always replaced)                               |
 | `zsh/.aliases`                 | `~/` (created once; glob import injected if missing) |
 | `zsh/.aliases-local`           | `~/` (created once; not overwritten on update)       |
 | oh-my-zsh theme                | `~/.oh-my-zsh/custom/themes/`                        |
