@@ -179,6 +179,10 @@ install_nvm() {
         fi
     else
         print_status "NVM already installed"
+        # Source nvm for current session even when already installed
+        export NVM_DIR="$HOME/.nvm"
+        [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+        [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"
     fi
 }
 
