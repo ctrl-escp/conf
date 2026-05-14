@@ -6,14 +6,13 @@
 # 2. Applies your personal configuration files
 # Supports: macOS, Linux (Ubuntu/Debian, CentOS/RHEL/Fedora), Windows (WSL)
 #
-# USAGE: 
-#   Run this script from any directory. It will automatically find 
+# USAGE:
+#   Run this script from any directory. It will automatically find
 #   configuration files relative to the script location.
-#   
+#
 #   Examples:
-#     ./env/install.sh                    # From project root
-#     cd env && ./install.sh              # From env directory  
-#     /path/to/conf/env/install.sh        # With absolute path
+#     ./install.sh                        # From project root
+#     /path/to/conf/install.sh            # With absolute path
 
 set -e  # Exit on any error
 
@@ -398,82 +397,71 @@ create_directories() {
 # Copy vim configuration and install plugins
 install_vim_config() {
     print_status "Installing vim configuration..."
-    
-    # Get the directory where this script is located
+
     local script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-    
-    if [ -f "$script_dir/.vimrc" ]; then
-        cp "$script_dir/.vimrc" ~
+
+    if [ -f "$script_dir/vim/.vimrc" ]; then
+        cp "$script_dir/vim/.vimrc" ~
         print_success "Copied .vimrc"
     else
-        print_warning ".vimrc not found in $script_dir"
+        print_warning "vim/.vimrc not found"
         return
     fi
-    
-    if [ -d "$script_dir/vim" ]; then
-        cp -R "$script_dir/vim" ~/.vim
-        print_success "Copied vim directory"
+
+    if [ -d "$script_dir/vim/runtime" ]; then
+        mkdir -p ~/.vim
+        cp -R "$script_dir/vim/runtime/." ~/.vim/
+        print_success "Copied vim runtime files"
     else
-        print_warning "vim directory not found in $script_dir"
+        print_warning "vim/runtime not found"
         return
     fi
-    
-    # Install custom oh-my-zsh theme
-    if [ -f "$script_dir/.oh-my-zsh/custom/themes/af-magic-enhanced.zsh-theme" ]; then
-        mkdir -p ~/.oh-my-zsh/custom/themes
-        cp "$script_dir/.oh-my-zsh/custom/themes/af-magic-enhanced.zsh-theme" ~/.oh-my-zsh/custom/themes/
-        print_success "Copied enhanced af-magic theme"
-    fi
-    
-    # Install vim plugins automatically
+
     if command_exists vim; then
         print_status "Installing vim plugins with vim-plug..."
         vim +PlugInstall +qall 2>/dev/null
         print_success "Vim plugins installed"
-        
-        # Install CoC extensions
-        print_status "Installing CoC language server extensions..."
-        vim +"CocInstall -sync coc-python coc-tsserver coc-json coc-html coc-css coc-yaml coc-sh coc-prettier coc-eslint" +qall 2>/dev/null
-        print_success "CoC extensions installed"
     else
-        print_warning "Vim not found, skipping plugin installation"
-        print_status "After installation, run these commands in vim:"
-        print_status "  :PlugInstall"
-        print_status "  :CocInstall coc-python coc-tsserver coc-sh coc-json coc-prettier coc-eslint"
+        print_warning "Vim not found — run :PlugInstall manually after installation"
     fi
 }
 
 # Copy zsh configuration
 install_zsh_config() {
     print_status "Installing zsh configuration..."
-    
-    # Get the directory where this script is located
+
     local script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-    
-    # Copy configuration files
-    local files=(".aliases" ".aliases-local" ".envvars" ".zshrc2")
+    local zsh_dir="$script_dir/zsh"
     local files_copied=0
 
+    # Install custom oh-my-zsh theme
+    if [ -f "$zsh_dir/.oh-my-zsh/custom/themes/af-magic-enhanced.zsh-theme" ]; then
+        mkdir -p ~/.oh-my-zsh/custom/themes
+        cp "$zsh_dir/.oh-my-zsh/custom/themes/af-magic-enhanced.zsh-theme" ~/.oh-my-zsh/custom/themes/
+        print_success "Copied af-magic-enhanced theme"
+    fi
+
+    # Always-replace files
+    local files=(".aliases" ".aliases-local" ".envvars" ".zshrc2")
     for file in "${files[@]}"; do
-        if [ -f "$script_dir/$file" ]; then
-            cp "$script_dir/$file" ~
+        if [ -f "$zsh_dir/$file" ]; then
+            cp "$zsh_dir/$file" ~
             print_success "Copied $file"
             ((files_copied++))
         else
-            print_warning "$file not found in $script_dir"
+            print_warning "$file not found in zsh/"
         fi
     done
 
     # Handle .zshrc: never blindly overwrite an existing file
     local source_line='source ~/.zshrc2'
     if [ ! -f ~/.zshrc ]; then
-        cp "$script_dir/.zshrc" ~/.zshrc
+        cp "$zsh_dir/.zshrc" ~/.zshrc
         print_success "Copied .zshrc"
         ((files_copied++))
     elif grep -qF "$source_line" ~/.zshrc; then
         print_success ".zshrc already configured"
     else
-        # Inject source line before the first non-comment, non-blank line
         awk -v line="$source_line" '
             !inserted && /^[^#[:space:]]/ {
                 print line "\n"
@@ -485,40 +473,61 @@ install_zsh_config() {
         print_success "Injected '$source_line' into existing .zshrc"
         ((files_copied++))
     fi
-    
-    # Copy any .git* files (like .gitconfig, .gitignore_global)
-    local git_files_copied=0
-    for file in "$script_dir"/.git*; do
+
+    if [ $files_copied -eq 0 ]; then
+        print_warning "No zsh configuration files found to copy"
+    fi
+}
+
+# Copy git configuration
+install_git_config() {
+    print_status "Installing git configuration..."
+
+    local script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+    local files_copied=0
+
+    for file in "$script_dir/git"/.*; do
         if [ -f "$file" ]; then
             cp "$file" ~
             print_success "Copied $(basename "$file")"
-            ((git_files_copied++))
+            ((files_copied++))
         fi
     done
-    
-    # Deploy nvim config
+
+    if [ $files_copied -eq 0 ]; then
+        print_warning "No git configuration files found"
+    fi
+}
+
+# Deploy nvim configuration
+install_nvim_config() {
+    print_status "Installing nvim configuration..."
+
+    local script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+    local nvim_src="$script_dir/nvim"
     local nvim_dir="$HOME/.config/nvim"
+    local files_copied=0
+
     mkdir -p "$nvim_dir/lua"
 
     # Always replace the shared config
-    if [ -f "$script_dir/nvim-conf.lua" ]; then
-        cp "$script_dir/nvim-conf.lua" "$nvim_dir/lua/nvim-conf.lua"
+    if [ -f "$nvim_src/nvim-conf.lua" ]; then
+        cp "$nvim_src/nvim-conf.lua" "$nvim_dir/lua/nvim-conf.lua"
         print_success "Copied nvim-conf.lua → ~/.config/nvim/lua/nvim-conf.lua"
         ((files_copied++))
     else
-        print_warning "nvim-conf.lua not found in $script_dir"
+        print_warning "nvim/nvim-conf.lua not found"
     fi
 
     # Handle init.lua: never blindly overwrite an existing file
     local nvim_require_line='require("nvim-conf")'
     if [ ! -f "$nvim_dir/init.lua" ]; then
-        cp "$script_dir/init.lua" "$nvim_dir/init.lua"
+        cp "$nvim_src/init.lua" "$nvim_dir/init.lua"
         print_success "Copied init.lua → ~/.config/nvim/init.lua"
         ((files_copied++))
     elif grep -qF "$nvim_require_line" "$nvim_dir/init.lua"; then
         print_success "nvim init.lua already configured"
     else
-        # Inject require line before the first non-comment, non-blank line
         awk -v line="$nvim_require_line" '
             !inserted && !/^--/ && !/^[[:space:]]*$/ {
                 print line "\n"
@@ -531,8 +540,8 @@ install_zsh_config() {
         ((files_copied++))
     fi
 
-    if [ $files_copied -eq 0 ] && [ $git_files_copied -eq 0 ]; then
-        print_warning "No configuration files found to copy"
+    if [ $files_copied -eq 0 ]; then
+        print_warning "No nvim configuration files found"
     fi
 }
 
@@ -568,8 +577,10 @@ main() {
     echo "======================================================================"
     
     create_directories
-    install_vim_config
     install_zsh_config
+    install_git_config
+    install_vim_config
+    install_nvim_config
     
     echo
     echo "======================================================================"
@@ -594,7 +605,7 @@ main() {
     echo "2. Open vim to verify plugins are working"
     echo "3. Enjoy your development environment! 🚀"
     echo
-    print_status "Note: Configuration files are managed in $(dirname "${BASH_SOURCE[0]}")"
+    print_status "Note: Configuration files are managed in $(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 }
 
 # Check if running with sudo (we don't want that for most operations)
