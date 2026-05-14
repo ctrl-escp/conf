@@ -478,7 +478,7 @@ install_zsh_config() {
     fi
 
     # Always-replace files
-    local files=(".envvars" ".zshrc2" ".aliases-global")
+    local files=(".zshrc2" ".aliases-global")
     for file in "${files[@]}"; do
         if [ -f "$zsh_dir/$file" ]; then
             cp "$zsh_dir/$file" ~
@@ -488,6 +488,19 @@ install_zsh_config() {
             print_warning "$file not found in zsh/"
         fi
     done
+
+    # Copy .envvars only if missing or empty
+    if [ -f "$zsh_dir/.envvars" ]; then
+        if [ ! -s ~/.envvars ]; then
+            cp "$zsh_dir/.envvars" ~/.envvars
+            print_success "Copied .envvars"
+            ((++files_copied))
+        else
+            print_success ".envvars already exists, skipping"
+        fi
+    else
+        print_warning ".envvars not found in zsh/"
+    fi
 
     # Handle .aliases: inject the glob import if missing, never blindly overwrite
     local aliases_line='source ~/.aliases-*'
