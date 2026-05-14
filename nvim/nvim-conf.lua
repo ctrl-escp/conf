@@ -207,12 +207,14 @@ local plugin_specs = {
     dependencies = { "nvim-lua/plenary.nvim" },
     config = function()
       require("minuet").setup({
-        provider = "ollama",
+        provider = "openai_compatible",
         provider_options = {
-          ollama = {
-            model    = "qwen2.5-coder:7b",
-            end_point = "http://localhost:11434/api/chat",
-            optional = { max_tokens = 256, top_p = 0.9 },
+          openai_compatible = {
+            model     = "qwen2.5-coder:7b",
+            end_point = "http://localhost:11434/v1/chat/completions",
+            api_key   = "ollama",
+            name      = "Ollama",
+            optional  = { max_tokens = 256, top_p = 0.9 },
           },
         },
         throttle = 1000,   -- ms between completion requests
