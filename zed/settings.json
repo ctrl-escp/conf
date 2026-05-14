@@ -1,0 +1,224 @@
+{
+  "project_panel": {
+    "dock": "left",
+  },
+  "outline_panel": {
+    "dock": "left",
+  },
+  "collaboration_panel": {
+    "dock": "left",
+  },
+  "git_panel": {
+    "dock": "left",
+  },
+  "agent_servers": {
+    "codex-acp": {
+      "type": "registry",
+      "env": {},
+    },
+  },
+  "edit_predictions": {
+    "ollama": {
+      "model": "qwen2.5-coder:7b",
+    },
+    "sweep": {
+      "privacy_mode": true,
+    },
+    "provider": "ollama",
+    "mode": "eager",
+  },
+  "format_on_save": "on",
+  "languages": {
+    "JavaScript": {
+      "code_actions_on_format": {
+        "source.fixAll.eslint": true,
+      },
+    },
+  },
+  "agent": {
+    "dock": "right",
+    "profiles": {
+      "write": {
+        "name": "Write",
+        "tools": {
+          "search_web": true,
+          "diagnostics": true,
+          "fetch": true,
+          "list_directory": true,
+          "project_notifications": false,
+          "now": true,
+          "find_path": true,
+          "read_file": true,
+          "open": true,
+          "grep": true,
+          "thinking": true,
+          "terminal": true,
+          "edit_file": true,
+          "delete_path": false,
+          "move_path": false,
+          "copy_path": false,
+        },
+        "enable_all_context_servers": false,
+        "context_servers": {},
+      },
+      "docs": {
+        "name": "Docs",
+        "tools": {
+          "search_web": true,
+          "diagnostics": true,
+          "fetch": true,
+          "list_directory": true,
+          "project_notifications": false,
+          "now": true,
+          "find_path": true,
+          "read_file": true,
+          "open": true,
+          "grep": true,
+          "thinking": true,
+        },
+        "enable_all_context_servers": false,
+        "context_servers": {},
+      },
+    },
+    "default_profile": "write",
+    "use_modifier_to_send": true,
+    "default_model": {
+      "enable_thinking": false,
+      "provider": "ollama",
+      "model": "qwen2.5-coder:14b",
+    },
+    "inline_alternatives": [
+      {
+        "provider": "ollama",
+        "model": "deepseek-coder-v2:16b",
+      },
+      {
+        "provider": "ollama",
+        "model": "gpt-oss:20b",
+      },
+    ],
+    "thread_summary_model": {
+      "provider": "ollama",
+      "model": "gpt-oss:20b",
+    },
+    "commit_message_model": {
+      "provider": "ollama",
+      "model": "gpt-oss:20b",
+    },
+    "tool_permissions": {
+      "default": "confirm",
+      "tools": {
+        "terminal": {
+          "default": "confirm",
+          "always_allow": [
+            { "pattern": "^git\\s+(status|diff|log|show|branch)\\b" },
+            {
+              "pattern": "^npm\\s+(test|run\\s+test|run\\s+lint|run\\s+build)\\b",
+            },
+            { "pattern": "^pnpm\\s+(test|lint|build|exec\\s+tsc)\\b" },
+            { "pattern": "^yarn\\s+(test|lint|build)\\b" },
+            { "pattern": "^python(3)?\\s+-m\\s+pytest\\b" },
+            { "pattern": "^pytest\\b" },
+            { "pattern": "^ruff\\s+check\\b" },
+            { "pattern": "^mypy\\b" },
+            { "pattern": "^cargo\\s+(check|test|fmt|clippy|build)\\b" },
+            { "pattern": "^go\\s+(test|build)\\b" },
+            { "pattern": "^ls\\b" },
+            { "pattern": "^cat\\b" },
+          ],
+          "always_confirm": [
+            { "pattern": "^git\\s+(commit|push|rebase|reset|clean)\\b" },
+            { "pattern": "^npm\\s+install\\b" },
+            { "pattern": "^pnpm\\s+add\\b" },
+            { "pattern": "^yarn\\s+add\\b" },
+            { "pattern": "^pip(3)?\\s+install\\b" },
+            { "pattern": "^poetry\\s+add\\b" },
+            { "pattern": "^uv\\s+add\\b" },
+            { "pattern": "^docker\\b" },
+            { "pattern": "^sudo\\b" },
+          ],
+          "always_deny": [
+            { "pattern": "rm\\s+-rf\\s+(/|~|\\$HOME)\\b" },
+            { "pattern": "^sudo\\s+rm\\b" },
+          ],
+        },
+        "edit_file": {
+          "default": "confirm",
+          "always_deny": [
+            { "pattern": "\\.env(\\.|$)" },
+            { "pattern": "\\.(pem|key|p12|pfx)$" },
+            { "pattern": "secrets?/" },
+          ],
+        },
+        "delete_path": {
+          "default": "confirm",
+          "always_deny": [
+            { "pattern": "^/etc" },
+            { "pattern": "^/usr" },
+            { "pattern": "\\.git/?$" },
+            { "pattern": "node_modules/?$" },
+          ],
+        },
+        "fetch": {
+          "default": "confirm",
+        },
+      },
+    },
+    "single_file_review": true,
+    "expand_edit_card": true,
+    "expand_terminal_card": true,
+    "play_sound_when_agent_done": "when_hidden",
+    "model_parameters": [
+      {
+        "temperature": 0,
+      },
+      {
+        "provider": "ollama",
+        "model": "qwen2.5-coder:14b",
+        "temperature": 0,
+      },
+      {
+        "provider": "ollama",
+        "model": "deepseek-coder-v2:16b",
+        "temperature": 0,
+      },
+      {
+        "provider": "ollama",
+        "model": "gpt-oss:20b",
+        "temperature": 0,
+      },
+    ],
+  },
+  "inlay_hints": {
+    "enabled": true,
+  },
+  "minimap": {
+    "show": "never",
+  },
+  "telemetry": {
+    "diagnostics": false,
+    "metrics": false,
+  },
+  "icon_theme": "Zed (Default)",
+  "base_keymap": "VSCode",
+  "ui_font_size": 16,
+  "buffer_font_size": 15,
+  "theme": {
+    "mode": "dark",
+    "light": "One Light",
+    "dark": "One Dark",
+  },
+  "language_models": {
+    "ollama": {
+      "api_url": "http://localhost:11434",
+      "context_window": 8192,
+    },
+    "lmstudio": {
+      "api_url": "http://localhost:1234/api/v0",
+    },
+  },
+  "show_edit_predictions": true,
+  "file_types": {
+    "JSON": ["jsonl"],
+  },
+}

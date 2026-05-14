@@ -545,6 +545,47 @@ install_nvim_config() {
     fi
 }
 
+# Deploy global ESLint config
+install_eslint_config() {
+    print_status "Installing ESLint config..."
+
+    local script_dir
+    script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+    local src="$script_dir/eslint"
+    local dest="$HOME/.config/eslint"
+
+    mkdir -p "$dest"
+    cp "$src/eslint.config.mjs" "$dest/"
+    cp "$src/eslint-vscode-resolver.mjs" "$dest/"
+    cp "$src/package.json" "$dest/"
+    print_success "Copied ESLint config files"
+
+    if command_exists npm; then
+        print_status "Installing ESLint dependencies..."
+        npm install --prefix "$dest" --silent
+        print_success "ESLint dependencies installed"
+    else
+        print_warning "npm not found — run 'npm install' in ~/.config/eslint manually"
+    fi
+}
+
+# Deploy Zed settings
+install_zed_config() {
+    print_status "Installing Zed config..."
+
+    local script_dir
+    script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+    if [ ! -f "$script_dir/zed/settings.json" ]; then
+        print_warning "zed/settings.json not found"
+        return
+    fi
+
+    mkdir -p "$HOME/.config/zed"
+    cp "$script_dir/zed/settings.json" "$HOME/.config/zed/settings.json"
+    print_success "Copied Zed settings"
+}
+
 # Symlink sys-tools scripts into /usr/local/bin
 install_sys_tools() {
     print_status "Installing sys-tools..."
@@ -605,7 +646,12 @@ main() {
     install_git_config
     install_vim_config
     install_nvim_config
+    install_eslint_config
     install_sys_tools
+
+    if [[ " $* " == *" zed "* ]]; then
+        install_zed_config
+    fi
     
     echo
     echo "======================================================================"
