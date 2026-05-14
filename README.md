@@ -39,18 +39,20 @@ Pass one or more component names to install only those, skipping everything else
 ### External tools
 
 
-| Tool                                         | macOS | Ubuntu/Debian | Fedora | RHEL/CentOS |
-| -------------------------------------------- | ----- | ------------- | ------ | ----------- |
-| Homebrew                                     | ✓     | —             | —      | —           |
-| zsh                                          | brew  | apt           | dnf    | yum         |
-| oh-my-zsh                                    | ✓     | ✓             | ✓      | ✓           |
-| NVM + Node LTS                               | ✓     | ✓             | ✓      | ✓           |
-| zsh-autosuggestions                          | ✓     | ✓             | ✓      | ✓           |
-| zsh-syntax-highlighting                      | ✓     | ✓             | ✓      | ✓           |
-| fzf, bat, eza, fd, ripgrep                   | brew  | apt           | dnf    | manual      |
-| Python LSP + formatters                      | ✓     | ✓             | ✓      | ✓           |
-| typescript-language-server, eslint, prettier | ✓     | ✓             | ✓      | ✓           |
-| shellcheck                                   | brew  | apt           | dnf    | —           |
+| Tool                                         | macOS | Ubuntu/Debian      | Fedora | RHEL/CentOS |
+| -------------------------------------------- | ----- | ------------------ | ------ | ----------- |
+| Homebrew                                     | ✓     | —                  | —      | —           |
+| zsh                                          | brew  | apt                | dnf    | yum         |
+| oh-my-zsh                                    | ✓     | ✓                  | ✓      | ✓           |
+| NVM + Node LTS                               | ✓     | ✓                  | ✓      | ✓           |
+| zsh-autosuggestions                          | ✓     | ✓                  | ✓      | ✓           |
+| zsh-syntax-highlighting                      | ✓     | ✓                  | ✓      | ✓           |
+| Neovim 0.11+                                 | brew  | GitHub release     | —      | —           |
+| fzf, bat, eza, fd, ripgrep                   | brew  | apt                | dnf    | manual      |
+| tree-sitter-cli                              | brew  | npm (global)       | —      | —           |
+| Python LSP + formatters                      | ✓     | ✓                  | ✓      | ✓           |
+| typescript-language-server, eslint, prettier | ✓     | ✓                  | ✓      | ✓           |
+| shellcheck                                   | brew  | apt                | dnf    | —           |
 
 
 ### Configuration files
@@ -59,8 +61,9 @@ Pass one or more component names to install only those, skipping everything else
 | What                           | Deployed to                                          |
 | ------------------------------ | ---------------------------------------------------- |
 | `zsh/.zshrc2`                  | `~/.zshrc2` (always replaced)                        |
-| `zsh/.aliases`, `.envvars`     | `~/` (always replaced)                               |
-| `zsh/.aliases-local`           | `~/` (starter template, always replaced)             |
+| `zsh/.envvars`                 | `~/` (always replaced)                               |
+| `zsh/.aliases`                 | `~/` (created once; glob import injected if missing) |
+| `zsh/.aliases-local`           | `~/` (created once; not overwritten on update)       |
 | oh-my-zsh theme                | `~/.oh-my-zsh/custom/themes/`                        |
 | `vim/.vimrc` + runtime         | `~/.vimrc`, `~/.vim/`                                |
 | `nvim/nvim-conf.lua`           | `~/.config/nvim/lua/nvim-conf.lua` (always replaced) |
@@ -83,8 +86,8 @@ Pass one or more component names to install only those, skipping everything else
 
 Two files are intentionally never overwritten on update:
 
-- `**~/.zshrc**` — sources `~/.zshrc2` and holds machine-local additions. On first install, if no `.zshrc` exists it's copied from the repo; otherwise `source ~/.zshrc2` is injected at the top. Subsequent installs only replace `.zshrc2`.
-- `**~/.config/nvim/init.lua**` — requires `nvim-conf` and holds machine-local additions. Same injection pattern. Subsequent installs only replace `nvim-conf.lua`.
+- `**~/.zshrc**` — sources `~/.zshrc2` and holds machine-local additions. On first install, if no `.zshrc` exists it's copied from the repo; otherwise `source ~/.zshrc2` is appended to the end. Subsequent installs only replace `.zshrc2`.
+- `**~/.config/nvim/init.lua**` — requires `nvim-conf` and holds machine-local additions. Same pattern: created from the repo template on first install, otherwise `require("nvim-conf")` is appended to the end. Subsequent installs only replace `nvim-conf.lua`.
 
 Machine-local aliases go in `~/.aliases-<name>` (e.g. `~/.aliases-work`) — picked up automatically, never touched by this repo.
 
