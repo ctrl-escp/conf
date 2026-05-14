@@ -594,7 +594,7 @@ install_sys_tools() {
     script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
     local tools_dir="$script_dir/sys-tools"
 
-    local tools=("aptdate" "pipdate")
+    local tools=("aptdate" "pipdate" "ollama-update")
     for name in "${tools[@]}"; do
         local src="$tools_dir/${name}.sh"
 
