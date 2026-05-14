@@ -496,15 +496,8 @@ install_zsh_config() {
     elif grep -qF "$source_line" ~/.zshrc; then
         print_success ".zshrc already configured"
     else
-        awk -v line="$source_line" '
-            !inserted && /^[^#[:space:]]/ {
-                print line "\n"
-                inserted=1
-            }
-            { print }
-            END { if (!inserted) print "\n" line }
-        ' ~/.zshrc > /tmp/.zshrc_patched && mv /tmp/.zshrc_patched ~/.zshrc
-        print_success "Injected '$source_line' into existing .zshrc"
+        printf '\n%s\n' "$source_line" >> ~/.zshrc
+        print_success "Appended '$source_line' to existing .zshrc"
         ((files_copied++))
     fi
 
