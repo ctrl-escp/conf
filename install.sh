@@ -731,12 +731,22 @@ main() {
         install_eslint_config
         install_sys_tools
 
+        local conf_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
         echo
-        print_status "Next steps:"
-        echo "1. Restart your terminal or run: exec zsh"
-        echo "2. Open nvim to let lazy.nvim install plugins"
+        echo "======================================================================"
+        echo "  Next steps"
+        echo "======================================================================"
+        echo "  1. Restart your terminal or run:  exec zsh"
+        echo "  2. Open nvim to install plugins:  nvim"
         echo
-        print_status "Note: Configuration files are managed in $(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+        echo "  Optional components (not installed by default):"
+        echo
+        echo "    Git config (.gitconfig, .gitignore):"
+        echo "      $conf_dir/install.sh git"
+        echo
+        echo "    Zed editor settings:"
+        echo "      $conf_dir/install.sh zed"
+        echo "======================================================================"
     fi
 
     echo
