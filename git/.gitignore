@@ -1,6 +1,9 @@
-.idea/
-.vs-code/
+.idea
+.vs-code
 *.iml
+.cursor
+.claude
 
+CLAUDE.md
 *tmp*
 .DS_STORE
