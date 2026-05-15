@@ -65,9 +65,31 @@ case $DISTRO in
     print_installing "apt install fd-find ripgrep bat..."
     sudo apt install -y fd-find ripgrep bat
 
-    _check_tool "fd" "fdfind" || { print_already "fd (via fdfind)"; }
-    _check_tool "rg"           || { print_failed "rg missing after apt install"; exit 1; }
-    _check_tool "bat"          || { print_failed "bat missing after apt install"; exit 1; }
+    # On Debian/Ubuntu these tools install under different binary names.
+    # Create ~/.local/bin symlinks so 'fd' and 'bat' work in the shell.
+    mkdir -p ~/.local/bin
+
+    if command_exists fdfind; then
+        print_verified "fd ($(fdfind --version))"
+        [ -e ~/.local/bin/fd ] || ln -s "$(which fdfind)" ~/.local/bin/fd && \
+            print_success "Symlinked fdfind → ~/.local/bin/fd"
+    else
+        print_failed "fdfind missing after apt install"; exit 1
+    fi
+
+    if command_exists rg; then
+        print_verified "rg ($(rg --version | head -1))"
+    else
+        print_failed "rg missing after apt install"; exit 1
+    fi
+
+    if command_exists batcat; then
+        print_verified "bat ($(batcat --version))"
+        [ -e ~/.local/bin/bat ] || ln -s "$(which batcat)" ~/.local/bin/bat && \
+            print_success "Symlinked batcat → ~/.local/bin/bat"
+    else
+        print_failed "batcat missing after apt install"; exit 1
+    fi
 
     # Neovim 0.11+ (apt version is too old)
     needs_nvim=true
@@ -143,10 +165,10 @@ case $DISTRO in
 
   # ──────────────────────── Fedora ───────────────────────
   fedora)
-    print_installing "dnf install fzf bat fd-find ripgrep eza..."
-    sudo dnf install -y fzf bat fd-find ripgrep
+    print_installing "dnf install fzf bat fd-find ripgrep eza neovim..."
+    sudo dnf install -y fzf bat fd-find ripgrep neovim
     command_exists eza || sudo dnf install -y eza
-    for tool in fzf bat rg eza; do _check_tool "$tool" || true; done
+    for tool in fzf bat rg eza nvim; do _check_tool "$tool" || true; done
     ;;
 
   # ──────────────────── CentOS / RHEL ────────────────────

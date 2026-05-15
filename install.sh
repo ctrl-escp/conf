@@ -74,7 +74,13 @@ _run_step() {
 _prompt_step() {
     local name=$1
     printf "\n  Install %-18s? [Y/n] " "$name"
-    read -r answer </dev/tty
+    if [ -t 0 ] || [ -c /dev/tty ]; then
+        read -r answer </dev/tty
+    else
+        # No terminal available (CI/pipe) — default to yes
+        answer="y"
+        echo "y (no tty, defaulting to yes)"
+    fi
     case "${answer:-y}" in
         [Yy]*|"") return 0 ;;
         *)         return 1 ;;

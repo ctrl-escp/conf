@@ -16,8 +16,10 @@ if [ -d "$HOME/.nvm" ]; then
     print_already "NVM (~/.nvm)"
     _load_nvm
 else
-    print_installing "Installing NVM..."
-    curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.0/install.sh | bash
+    print_installing "Installing NVM (latest)..."
+    NVM_LATEST=$(curl -s https://api.github.com/repos/nvm-sh/nvm/releases/latest \
+        | grep '"tag_name"' | cut -d'"' -f4)
+    curl -o- "https://raw.githubusercontent.com/nvm-sh/nvm/${NVM_LATEST}/install.sh" | bash
     _load_nvm
     if [ -d "$HOME/.nvm" ]; then
         print_verified "NVM installed"

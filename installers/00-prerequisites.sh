@@ -10,14 +10,32 @@ print_step "00/12 · Prerequisites (git, curl, wget, gpg)"
 case $DISTRO in
 
   macos)
-    # All four ship with macOS / Xcode CLT; prompt to install CLT if missing
+    # git + curl ship with Xcode CLT; wget + gpg need Homebrew
     if ! command_exists git; then
         print_installing "Triggering Xcode Command Line Tools install..."
         xcode-select --install 2>/dev/null || true
         print_warning "Re-run this script after the Xcode CLT installer finishes"
         exit 1
     fi
-    for tool in git curl wget gpg; do
+    print_already "git ($(git --version))"
+    print_already "curl"
+
+    # Homebrew is required before we can install wget/gpg
+    if ! command_exists brew; then
+        print_installing "Installing Homebrew..."
+        /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+        # Add to PATH for Apple Silicon
+        if [[ $(uname -m) == "arm64" ]]; then
+            eval "$(/opt/homebrew/bin/brew shellenv)"
+        else
+            eval "$(/usr/local/bin/brew shellenv)"
+        fi
+        print_verified "Homebrew $(brew --version | head -1)"
+    else
+        print_already "Homebrew ($(brew --version | head -1))"
+    fi
+
+    for tool in wget gpg; do
         if command_exists "$tool"; then
             print_already "$tool"
         else
