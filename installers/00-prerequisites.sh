@@ -33,6 +33,8 @@ case $DISTRO in
         print_verified "Homebrew $(brew --version | head -1)"
     else
         print_already "Homebrew ($(brew --version | head -1))"
+        print_installing "brew update..."
+        brew update
     fi
 
     for tool in wget gpg; do
@@ -52,12 +54,14 @@ case $DISTRO in
     ;;
 
   fedora)
-    print_installing "dnf install git curl wget gpg..."
+    print_installing "dnf check-update + install git curl wget gpg..."
+    sudo dnf check-update || true
     sudo dnf install -y git curl wget gpg
     ;;
 
   centos|rhel)
-    print_installing "yum install git curl wget gpg..."
+    print_installing "yum check-update + install git curl wget gpg..."
+    sudo yum check-update || true
     sudo yum install -y git curl wget gpg
     ;;
 
