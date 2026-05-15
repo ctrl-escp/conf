@@ -5,31 +5,60 @@ Personal development environment. Run `install.sh` on a new machine to get every
 ## Install
 
 ```bash
-./install.sh
+./install.sh        # interactive: prompt Y/n for every step
+./install.sh -y     # automatic: run all required steps unattended
 ```
 
-Full setup: installs external tools and deploys all configuration files. Safe to re-run — existing local config files are never blindly overwritten (see [Update pattern](#update-pattern) below).
+Each step checks whether its target is already installed, installs it if not, then verifies the result. Safe to re-run — existing local config files are never blindly overwritten (see [Update pattern](#update-pattern) below).
 
-### Install specific components
+### Modes
 
-Pass one or more component names to install only those, skipping everything else:
+| Mode | Command | Behaviour |
+|------|---------|-----------|
+| Interactive | `./install.sh` | Prompts Y/n before each step, including optional steps |
+| Automatic | `./install.sh -y` | Runs all required steps; prints optional steps at the end with the commands to run them |
+| Selective | `./install.sh <step>...` | Runs only the named steps, in the order given |
+
+### Steps
+
+| Step | Required | What it does |
+|------|----------|--------------|
+| `prerequisites` | yes | Install git, curl, wget, gpg — required by all subsequent steps |
+| `zsh` | yes | Install zsh; set as default shell |
+| `oh-my-zsh` | yes | Install Oh My Zsh + autosuggestions + syntax-highlighting plugins |
+| `nvm` | yes | Install NVM + Node.js LTS; provides `npm` for later steps |
+| `cli-tools` | yes | Install fzf, bat, eza, fd, ripgrep, Neovim 0.11+, tree-sitter-cli (via npm) |
+| `dev-tools` | yes | Install Python LSP/formatters, Node.js LSP tools, shellcheck |
+| `zsh-config` | yes | Deploy zsh dotfiles |
+| `vim-config` | yes | Deploy vim config + run `:PlugInstall` |
+| `nvim-config` | yes | Deploy nvim config |
+| `eslint-config` | yes | Deploy global ESLint config + `npm install` |
+| `sys-tools` | yes | Symlink sys-tools scripts into `/usr/local/bin` |
+| `git-config` | optional | Deploy `.gitconfig` and `.gitignore` (skipped in auto mode) |
+| `zed-config` | optional | Deploy Zed editor settings (skipped in auto mode) |
+
+Optional steps are prompted in interactive mode. In auto mode (`-y`) they are skipped and printed at the end with the exact command to run each one.
 
 ```bash
-./install.sh zed
-./install.sh nvim zed
-./install.sh zsh git nvim vim eslint tools zed
+# Examples
+./install.sh nvm cli-tools          # just those two steps
+./install.sh git-config zed-config  # optional steps only
 ```
 
+### How each step works
 
-| Argument | What it installs                       |
-| -------- | -------------------------------------- |
-| `zsh`    | zsh config files                       |
-| `git`    | git config files                       |
-| `vim`    | vim config and runtime files           |
-| `nvim`   | nvim config files                      |
-| `eslint` | global ESLint config + `npm install`   |
-| `zed`    | Zed editor settings                    |
-| `tools`  | sys-tools symlinks in `/usr/local/bin` |
+Every script in `installers/` follows the same pattern:
+
+1. **Check** — if the tool or file is already present, print its version and move on
+2. **Install** — run the appropriate install command for the detected OS
+3. **Verify** — confirm the expected binary or file exists; exit non-zero on failure
+
+Scripts can be run standalone for debugging:
+
+```bash
+bash installers/04-cli-tools.sh
+bash installers/08-nvim-config.sh
+```
 
 
 ---

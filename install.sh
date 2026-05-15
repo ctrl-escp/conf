@@ -1,782 +1,145 @@
 #!/usr/bin/env bash
 # ====================================================================
-# Complete Development Environment Setup
-# ====================================================================
-# 1. Installs external tools (zsh, oh-my-zsh, nvm, nvim, etc.)
-# 2. Applies your personal configuration files
-# Supports: macOS, Linux (Ubuntu/Debian, CentOS/RHEL/Fedora), Windows (WSL)
+# Development Environment Setup — orchestrator
 #
 # USAGE:
-#   Run this script from any directory. It will automatically find
-#   configuration files relative to the script location.
+#   ./install.sh              # interactive: prompt for each step
+#   ./install.sh -y           # automatic: run all required steps
+#   ./install.sh <step>...    # selective: run only named steps
 #
-#   Examples:
-#     ./install.sh                        # From project root
-#     /path/to/conf/install.sh            # With absolute path
-
-set -e  # Exit on any error
-
-# Colors for output
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
-BLUE='\033[0;34m'
-PURPLE='\033[0;35m'
-NC='\033[0m' # No Color
-
-# Helper functions
-print_status() {
-    echo -e "${BLUE}[INFO]${NC} $1"
-}
-
-print_success() {
-    echo -e "${GREEN}[SUCCESS]${NC} $1"
-}
-
-print_warning() {
-    echo -e "${YELLOW}[WARNING]${NC} $1"
-}
-
-print_error() {
-    echo -e "${RED}[ERROR]${NC} $1"
-}
-
-print_section() {
-    echo -e "${PURPLE}[SECTION]${NC} $1"
-}
-
-# ====================================================================
-# PART 1: EXTERNAL TOOLS INSTALLATION
+# STEPS (required):
+#   prerequisites  zsh  oh-my-zsh  nvm  cli-tools  dev-tools
+#   zsh-config  vim-config  nvim-config  eslint-config  sys-tools
+#
+# STEPS (optional — prompted interactively, skipped in auto mode):
+#   git-config  zed-config
 # ====================================================================
 
-# Detect OS
-detect_os() {
-    if [[ "$OSTYPE" == "darwin"* ]]; then
-        OS="macos"
-        DISTRO="macos"
-    elif [[ "$OSTYPE" == "linux-gnu"* ]] || [[ "$OSTYPE" == "linux"* ]]; then
-        OS="linux"
-        if command -v lsb_release >/dev/null 2>&1; then
-            DISTRO=$(lsb_release -si | tr '[:upper:]' '[:lower:]')
-        elif [ -f /etc/os-release ]; then
-            DISTRO=$(grep '^ID=' /etc/os-release | cut -d'=' -f2 | tr -d '"' | tr '[:upper:]' '[:lower:]')
-        elif [ -f /etc/redhat-release ]; then
-            DISTRO="rhel"
-        else
-            DISTRO="unknown"
-        fi
-    elif [[ "$OSTYPE" == "msys" ]] || [[ "$OSTYPE" == "cygwin" ]] || [[ -n "$WSL_DISTRO_NAME" ]]; then
-        OS="windows"
-        DISTRO="wsl"
-    else
-        OS="unknown"
-        DISTRO="unknown"
-    fi
-    
-    print_status "Detected OS: $OS ($DISTRO)"
-}
+set -euo pipefail
 
-# Check if command exists
-command_exists() {
-    command -v "$1" >/dev/null 2>&1
-}
-
-# Install package manager tools
-install_package_manager() {
-    case $DISTRO in
-        "macos")
-            if ! command_exists brew; then
-                print_status "Installing Homebrew..."
-                /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-                
-                # Add Homebrew to PATH for Apple Silicon Macs
-                if [[ $(uname -m) == "arm64" ]]; then
-                    echo 'eval "$(/opt/homebrew/bin/brew shellenv)"' >> ~/.zprofile
-                    eval "$(/opt/homebrew/bin/brew shellenv)"
-                else
-                    echo 'eval "$(/usr/local/bin/brew shellenv)"' >> ~/.zprofile
-                    eval "$(/usr/local/bin/brew shellenv)"
-                fi
-                
-                print_success "Homebrew installed"
-            else
-                print_status "Homebrew already installed"
-            fi
-            ;;
-        "ubuntu"|"debian")
-            print_status "Updating package manager..."
-            sudo apt update
-            ;;
-        "fedora"|"centos"|"rhel")
-            print_status "Package manager ready"
-            ;;
-        "wsl")
-            if grep -qi ubuntu /etc/os-release 2>/dev/null; then
-                sudo apt update
-            fi
-            ;;
-    esac
-}
-
-# Install zsh
-install_zsh() {
-    if ! command_exists zsh; then
-        print_status "Installing zsh..."
-        case $DISTRO in
-            "macos")
-                brew install zsh
-                ;;
-            "ubuntu"|"debian"|"wsl")
-                sudo apt install -y zsh
-                ;;
-            "fedora")
-                sudo dnf install -y zsh
-                ;;
-            "centos"|"rhel")
-                sudo yum install -y zsh
-                ;;
-            *)
-                print_error "Unsupported distribution for automatic zsh installation: $DISTRO"
-                exit 1
-                ;;
-        esac
-        print_success "Zsh installed"
-    else
-        print_status "Zsh already installed"
-    fi
-}
-
-# Install Oh My Zsh
-install_oh_my_zsh() {
-    if [ ! -d "$HOME/.oh-my-zsh" ]; then
-        print_status "Installing Oh My Zsh..."
-        sh -c "$(curl -fsSL https://raw.github.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended
-        print_success "Oh My Zsh installed"
-    else
-        print_status "Oh My Zsh already installed"
-    fi
-}
-
-# Install NVM (Node Version Manager)
-install_nvm() {
-    if [ ! -d "$HOME/.nvm" ]; then
-        print_status "Installing NVM..."
-        curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.0/install.sh | bash
-        
-        # Source nvm for current session
-        export NVM_DIR="$HOME/.nvm"
-        [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
-        [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"
-        
-        print_success "NVM installed"
-        
-        # Install latest LTS Node.js
-        if command_exists nvm; then
-            print_status "Installing latest LTS Node.js..."
-            nvm install --lts
-            nvm use --lts
-            print_success "Node.js LTS installed"
-        fi
-    else
-        print_status "NVM already installed"
-        # Source nvm for current session even when already installed
-        export NVM_DIR="$HOME/.nvm"
-        [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
-        [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"
-    fi
-}
-
-# Install zsh external plugins
-install_zsh_plugins() {
-    local plugins_dir="$HOME/.oh-my-zsh/custom/plugins"
-    
-    # zsh-autosuggestions
-    if [ ! -d "$plugins_dir/zsh-autosuggestions" ]; then
-        print_status "Installing zsh-autosuggestions..."
-        git clone https://github.com/zsh-users/zsh-autosuggestions "$plugins_dir/zsh-autosuggestions"
-        print_success "zsh-autosuggestions installed"
-    else
-        print_status "zsh-autosuggestions already installed"
-    fi
-    
-    # zsh-syntax-highlighting
-    if [ ! -d "$plugins_dir/zsh-syntax-highlighting" ]; then
-        print_status "Installing zsh-syntax-highlighting..."
-        git clone https://github.com/zsh-users/zsh-syntax-highlighting "$plugins_dir/zsh-syntax-highlighting"
-        print_success "zsh-syntax-highlighting installed"
-    else
-        print_status "zsh-syntax-highlighting already installed"
-    fi
-}
-
-# Install modern CLI tools
-install_modern_cli_tools() {
-    print_status "Installing modern CLI tools..."
-    
-    case $DISTRO in
-        "macos")
-            local tools=("fzf" "bat" "eza" "fd" "ripgrep" "tree-sitter-cli")
-            for tool in "${tools[@]}"; do
-                if ! command_exists "$tool"; then
-                    print_status "Installing $tool..."
-                    brew install "$tool"
-                else
-                    print_status "$tool already installed"
-                fi
-            done
-            
-            # Setup fzf key bindings (only if not already configured)
-            if command_exists fzf && [ ! -f ~/.fzf.zsh ]; then
-                print_status "Setting up fzf key bindings..."
-                $(brew --prefix)/opt/fzf/install --key-bindings --completion --no-update-rc
-            elif command_exists fzf; then
-                print_status "FZF key bindings already configured"
-            fi
-            ;;
-            
-        "ubuntu"|"debian"|"wsl")
-            # Install via apt where available
-            sudo apt install -y fd-find ripgrep bat
-
-            # Install Neovim 0.11+ from GitHub releases (apt package is too old)
-            local needs_nvim=true
-            if command_exists nvim; then
-                local nvim_ver
-                nvim_ver=$(nvim --version | head -1 | sed 's/NVIM v//')
-                if printf '%s\n%s\n' "0.11" "$nvim_ver" | sort -V -C 2>/dev/null; then
-                    needs_nvim=false
-                    print_status "Neovim $nvim_ver already installed"
-                fi
-            fi
-            if $needs_nvim; then
-                print_status "Installing Neovim 0.11+..."
-                local arch
-                arch=$(uname -m)
-                local nvim_archive
-                case "$arch" in
-                    x86_64)  nvim_archive="nvim-linux-x86_64.tar.gz" ;;
-                    aarch64) nvim_archive="nvim-linux-arm64.tar.gz" ;;
-                    *)       print_warning "Unsupported arch $arch, skipping Neovim install" ; nvim_archive="" ;;
-                esac
-                if [[ -n "$nvim_archive" ]]; then
-                    local tmpdir
-                    tmpdir=$(mktemp -d)
-                    curl -sL "https://github.com/neovim/neovim/releases/latest/download/$nvim_archive" -o "$tmpdir/nvim.tar.gz"
-                    sudo tar -xzf "$tmpdir/nvim.tar.gz" -C /usr/local --strip-components=1
-                    rm -rf "$tmpdir"
-                    print_success "Neovim installed: $(nvim --version | head -1)"
-                fi
-            fi
-            
-            # Install fzf
-            if [ ! -d ~/.fzf ]; then
-                git clone --depth 1 https://github.com/junegunn/fzf.git ~/.fzf
-            fi
-            if [ ! -f ~/.fzf.zsh ]; then
-                print_status "Setting up fzf key bindings..."
-                ~/.fzf/install --key-bindings --completion --no-update-rc
-            else
-                print_status "FZF already installed and configured"
-            fi
-            
-            # Install eza (newer systems)
-            if ! command_exists eza; then
-                # Try to install via package manager first, fallback to manual install
-                if ! sudo apt install -y eza 2>/dev/null; then
-                    print_status "Installing eza manually..."
-                    wget -qO- https://raw.githubusercontent.com/eza-community/eza/main/deb.asc | sudo gpg --dearmor -o /etc/apt/keyrings/gierens.gpg
-                    echo "deb [signed-by=/etc/apt/keyrings/gierens.gpg] http://deb.gierens.de stable main" | sudo tee /etc/apt/sources.list.d/gierens.list
-                    sudo chmod 644 /etc/apt/keyrings/gierens.gpg /etc/apt/sources.list.d/gierens.list
-                    sudo apt update
-                    sudo apt install -y eza
-                fi
-            fi
-
-            # Install tree-sitter CLI (required by nvim-treesitter to build parsers)
-            if ! command_exists tree-sitter; then
-                print_status "Installing tree-sitter-cli via npm..."
-                npm install -g tree-sitter-cli
-            fi
-            ;;
-            
-        "fedora")
-            sudo dnf install -y fzf bat fd-find ripgrep
-            
-            # Install eza
-            if ! command_exists eza; then
-                sudo dnf install -y eza
-            fi
-            ;;
-            
-        "centos"|"rhel")
-            print_warning "Some modern CLI tools may need manual installation on RHEL/CentOS"
-            print_status "Installing available tools..."
-            
-            # Enable EPEL repository for additional packages
-            sudo yum install -y epel-release
-            sudo yum install -y ripgrep
-            
-            # Manual installation for other tools
-            print_status "Please manually install: fzf, bat, eza, fd"
-            ;;
-    esac
-    
-    print_success "Modern CLI tools installation completed"
-}
-
-# Install development language servers and linters
-install_development_tools() {
-    print_status "Installing development language servers and linters..."
-    
-    # Python development tools
-    if command_exists python3; then
-        print_status "Installing Python language servers and formatters..."
-        
-        local python_tools=("python-lsp-server[all]" "black" "isort" "flake8" "pylint" "mypy")
-        local failed_tools=()
-        
-        for tool in "${python_tools[@]}"; do
-            if ! python3 -m pip install --user "$tool" >/dev/null 2>&1; then
-                failed_tools+=("$tool")
-            fi
-        done
-        
-        if [ ${#failed_tools[@]} -eq 0 ]; then
-            print_success "Python development tools installed"
-        else
-            print_warning "Some Python tools failed to install: ${failed_tools[*]}"
-            print_status "You can try installing them manually with: pip install --user ${failed_tools[*]}"
-        fi
-    else
-        print_warning "Python3 not found, skipping Python language server installation"
-    fi
-    
-    # Node.js development tools (if NVM/Node is available)
-    if command_exists npm; then
-        print_status "Installing Node.js language servers and linters..."
-        npm install -g typescript typescript-language-server eslint prettier 2>/dev/null || {
-            print_warning "Failed to install some Node.js tools. You may need to install them manually."
-        }
-        print_success "Node.js development tools installed"
-    else
-        print_warning "npm not found, skipping Node.js language server installation"
-    fi
-    
-    # Shell scripting tools
-    case $DISTRO in
-        "macos")
-            if ! command_exists shellcheck; then
-                brew install shellcheck 2>/dev/null || print_warning "Failed to install shellcheck"
-            fi
-            ;;
-        "ubuntu"|"debian"|"wsl")
-            if ! command_exists shellcheck; then
-                sudo apt install -y shellcheck 2>/dev/null || print_warning "Failed to install shellcheck"
-            fi
-            ;;
-        "fedora")
-            if ! command_exists shellcheck; then
-                sudo dnf install -y ShellCheck 2>/dev/null || print_warning "Failed to install shellcheck"
-            fi
-            ;;
-        "centos"|"rhel")
-            if ! command_exists shellcheck; then
-                print_warning "Please manually install shellcheck for shell script linting"
-            fi
-            ;;
-    esac
-    
-    if command_exists shellcheck; then
-        print_success "Shellcheck installed for shell script linting"
-    fi
-    
-    print_success "Development tools installation completed"
-}
-
-# Set zsh as default shell
-set_default_shell() {
-    local current_shell_name
-    current_shell_name=$(basename "$SHELL")
-    local target_zsh_path
-    target_zsh_path=$(which zsh)
-    
-    # Check if current shell is already zsh (any version of zsh)
-    if [ "$current_shell_name" = "zsh" ]; then
-        print_status "Zsh is already the default shell ($SHELL)"
-        return
-    fi
-    
-    # If we get here, we need to change the shell to zsh
-    print_status "Setting zsh as default shell (current: $SHELL)..."
-    
-    # Add zsh to /etc/shells if not present
-    if ! grep -q "$target_zsh_path" /etc/shells 2>/dev/null; then
-        print_status "Adding $target_zsh_path to /etc/shells..."
-        echo "$target_zsh_path" | sudo tee -a /etc/shells >/dev/null
-    fi
-    
-    # Change default shell
-    if chsh -s "$target_zsh_path"; then
-        print_success "Zsh set as default shell (restart terminal to take effect)"
-    else
-        print_error "Failed to set zsh as default shell. You may need to run: chsh -s $target_zsh_path"
-    fi
-}
-
-# ====================================================================
-# PART 2: CONFIGURATION FILES DEPLOYMENT
-# ====================================================================
-
-# Create cache directory for zsh history
-create_directories() {
-    print_status "Creating necessary directories..."
-    mkdir -p ~/.cache/zsh
-    print_success "Directories created"
-}
-
-# Copy vim configuration and install plugins
-install_vim_config() {
-    print_status "Installing vim configuration..."
-
-    local script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-
-    if [ -f "$script_dir/vim/.vimrc" ]; then
-        cp "$script_dir/vim/.vimrc" ~
-        print_success "Copied .vimrc"
-    else
-        print_warning "vim/.vimrc not found"
-        return
-    fi
-
-    if [ -d "$script_dir/vim/runtime" ]; then
-        mkdir -p ~/.vim
-        cp -R "$script_dir/vim/runtime/." ~/.vim/
-        print_success "Copied vim runtime files"
-    else
-        print_warning "vim/runtime not found"
-        return
-    fi
-
-    if command_exists vim; then
-        print_status "Installing vim plugins with vim-plug..."
-        vim +PlugInstall +qall 2>/dev/null
-        print_success "Vim plugins installed"
-    else
-        print_warning "Vim not found — run :PlugInstall manually after installation"
-    fi
-}
-
-# Copy zsh configuration
-install_zsh_config() {
-    print_status "Installing zsh configuration..."
-
-    local script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-    local zsh_dir="$script_dir/zsh"
-    local files_copied=0
-
-    # Install custom oh-my-zsh theme
-    if [ -f "$zsh_dir/.oh-my-zsh/custom/themes/af-magic-enhanced.zsh-theme" ]; then
-        mkdir -p ~/.oh-my-zsh/custom/themes
-        cp "$zsh_dir/.oh-my-zsh/custom/themes/af-magic-enhanced.zsh-theme" ~/.oh-my-zsh/custom/themes/
-        print_success "Copied af-magic-enhanced theme"
-    fi
-
-    # Always-replace files
-    local files=(".zshrc2" ".aliases-global")
-    for file in "${files[@]}"; do
-        if [ -f "$zsh_dir/$file" ]; then
-            cp "$zsh_dir/$file" ~
-            print_success "Copied $file"
-            ((++files_copied))
-        else
-            print_warning "$file not found in zsh/"
-        fi
-    done
-
-    # Copy .envvars only if missing or empty
-    if [ -f "$zsh_dir/.envvars" ]; then
-        if [ ! -s ~/.envvars ]; then
-            cp "$zsh_dir/.envvars" ~/.envvars
-            print_success "Copied .envvars"
-            ((++files_copied))
-        else
-            print_success ".envvars already exists, skipping"
-        fi
-    else
-        print_warning ".envvars not found in zsh/"
-    fi
-
-    # Handle .aliases: inject the glob import if missing, never blindly overwrite
-    local aliases_line='source ~/.aliases-*'
-    if [ ! -f ~/.aliases ]; then
-        cp "$zsh_dir/.aliases" ~/.aliases
-        print_success "Copied .aliases"
-        ((++files_copied))
-    elif grep -qF "$aliases_line" ~/.aliases; then
-        print_success ".aliases already configured"
-    else
-        echo "" >> ~/.aliases
-        echo "$aliases_line > /dev/null 2>&1" >> ~/.aliases
-        print_success "Injected alias glob import into existing .aliases"
-        ((++files_copied))
-    fi
-
-    # Handle .aliases-local: only create if it doesn't exist; seed brewdate on macOS
-    if [ ! -f ~/.aliases-local ]; then
-        if [[ "$DISTRO" == "macos" ]]; then
-            echo "alias brewdate='brew update && brew upgrade'" > ~/.aliases-local
-            print_success "Created .aliases-local with brewdate alias"
-        else
-            cp "$zsh_dir/.aliases-local" ~/.aliases-local
-            print_success "Created .aliases-local"
-        fi
-        ((++files_copied))
-    else
-        if [[ "$DISTRO" == "macos" ]] && ! grep -qF "brewdate" ~/.aliases-local; then
-            echo "alias brewdate='brew update && brew upgrade'" >> ~/.aliases-local
-            print_success "Added brewdate alias to .aliases-local"
-        else
-            print_success ".aliases-local already exists, skipping"
-        fi
-    fi
-
-    # Handle .zshrc: never blindly overwrite an existing file
-    local source_line='source ~/.zshrc2'
-    if [ ! -f ~/.zshrc ]; then
-        cp "$zsh_dir/.zshrc" ~/.zshrc
-        print_success "Copied .zshrc"
-        ((++files_copied))
-    elif grep -qF "$source_line" ~/.zshrc; then
-        print_success ".zshrc already configured"
-    else
-        printf '\n%s\n' "$source_line" >> ~/.zshrc
-        print_success "Appended '$source_line' to existing .zshrc"
-        ((++files_copied))
-    fi
-
-    if [ $files_copied -eq 0 ]; then
-        print_warning "No zsh configuration files found to copy"
-    fi
-}
-
-# Copy git configuration
-install_git_config() {
-    print_status "Installing git configuration..."
-
-    local script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-    local files_copied=0
-
-    for file in "$script_dir/git"/.*; do
-        if [ -f "$file" ]; then
-            local dest="$HOME/$(basename "$file")"
-            if [ -f "$dest" ]; then
-                print_status "$(basename "$file") already exists, skipping"
-            else
-                cp "$file" "$dest"
-                print_success "Copied $(basename "$file")"
-                ((++files_copied))
-            fi
-        fi
-    done
-
-    if [ $files_copied -eq 0 ]; then
-        print_warning "No git configuration files found"
-    fi
-}
-
-# Deploy nvim configuration
-install_nvim_config() {
-    print_status "Installing nvim configuration..."
-
-    local script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-    local nvim_src="$script_dir/nvim"
-    local nvim_dir="$HOME/.config/nvim"
-    local files_copied=0
-
-    mkdir -p "$nvim_dir/lua"
-
-    # Always replace the shared config
-    if [ -f "$nvim_src/nvim-conf.lua" ]; then
-        cp "$nvim_src/nvim-conf.lua" "$nvim_dir/lua/nvim-conf.lua"
-        print_success "Copied nvim-conf.lua → ~/.config/nvim/lua/nvim-conf.lua"
-        ((++files_copied))
-    else
-        print_warning "nvim/nvim-conf.lua not found"
-    fi
-
-    # Handle init.lua: never blindly overwrite an existing file
-    local nvim_require_line='require("nvim-conf")'
-    if [ ! -f "$nvim_dir/init.lua" ]; then
-        cp "$nvim_src/init.lua" "$nvim_dir/init.lua"
-        print_success "Copied init.lua → ~/.config/nvim/init.lua"
-        ((++files_copied))
-    elif grep -qF "$nvim_require_line" "$nvim_dir/init.lua"; then
-        print_success "nvim init.lua already configured"
-    else
-        printf '\n%s\n' "$nvim_require_line" >> "$nvim_dir/init.lua"
-        print_success "Appended '$nvim_require_line' to existing init.lua"
-        ((++files_copied))
-    fi
-
-    if [ $files_copied -eq 0 ]; then
-        print_warning "No nvim configuration files found"
-    fi
-}
-
-# Deploy global ESLint config
-install_eslint_config() {
-    print_status "Installing ESLint config..."
-
-    local script_dir
-    script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-    local src="$script_dir/eslint"
-    local dest="$HOME/.config/eslint"
-
-    mkdir -p "$dest"
-    cp "$src/eslint.config.mjs" "$dest/"
-    cp "$src/eslint-vscode-resolver.mjs" "$dest/"
-    cp "$src/package.json" "$dest/"
-    print_success "Copied ESLint config files"
-
-    if command_exists npm; then
-        print_status "Installing ESLint dependencies..."
-        npm install --prefix "$dest" --silent
-        print_success "ESLint dependencies installed"
-    else
-        print_warning "npm not found — run 'npm install' in ~/.config/eslint manually"
-    fi
-}
-
-# Deploy Zed settings
-install_zed_config() {
-    print_status "Installing Zed config..."
-
-    local script_dir
-    script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-
-    if [ ! -f "$script_dir/zed/settings.json" ]; then
-        print_warning "zed/settings.json not found"
-        return
-    fi
-
-    mkdir -p "$HOME/.config/zed"
-    cp "$script_dir/zed/settings.json" "$HOME/.config/zed/settings.json"
-    print_success "Copied Zed settings"
-}
-
-# Symlink sys-tools scripts into /usr/local/bin
-install_sys_tools() {
-    print_status "Installing sys-tools..."
-
-    local script_dir
-    script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-    local tools_dir="$script_dir/sys-tools"
-
-    local tools=("pipdate" "ollama-update")
-    [[ "$DISTRO" != "macos" ]] && tools=("aptdate" "${tools[@]}")
-    for name in "${tools[@]}"; do
-        local src="$tools_dir/${name}.sh"
-
-        if [ ! -f "$src" ]; then
-            print_warning "sys-tools/${name}.sh not found — skipping"
-            continue
-        fi
-
-        chmod +x "$src"
-        sudo rm -f "/usr/local/bin/$name"
-        sudo ln -s "$src" "/usr/local/bin/$name"
-        print_success "Linked $name → $src"
-    done
-}
-
-# Main installation function
-install_component() {
-    case "$1" in
-        zsh)       install_zsh_config ;;
-        git)       install_git_config ;;
-        vim)       install_vim_config ;;
-        nvim)      install_nvim_config ;;
-        eslint)    install_eslint_config ;;
-        zed)       install_zed_config ;;
-        tools)     install_sys_tools ;;
-        *)         print_error "Unknown component: $1"; exit 1 ;;
-    esac
-}
-
-main() {
-    detect_os
-
-    if [[ $OS == "unknown" ]]; then
-        print_error "Unsupported operating system: $OSTYPE"
-        exit 1
-    fi
-
-    if [[ $# -gt 0 ]]; then
-        echo "======================================================================"
-        echo "Installing: $*"
-        echo "======================================================================"
-        echo
-        for component in "$@"; do
-            install_component "$component"
-        done
-    else
-        echo "======================================================================"
-        echo "🚀 Complete Development Environment Setup"
-        echo "======================================================================"
-        echo
-
-        print_section "PHASE 1: Installing External Tools"
-        echo "======================================================================"
-
-        install_package_manager
-        install_zsh
-        install_oh_my_zsh
-        install_nvm
-        install_zsh_plugins
-        install_modern_cli_tools
-        install_development_tools
-        set_default_shell
-
-        echo
-        print_section "PHASE 2: Deploying Configuration Files"
-        echo "======================================================================"
-
-        create_directories
-        install_zsh_config
-        install_vim_config
-        install_nvim_config
-        install_eslint_config
-        install_sys_tools
-
-        local conf_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-        echo
-        echo "======================================================================"
-        echo "  Next steps"
-        echo "======================================================================"
-        echo "  1. Restart your terminal or run:  exec zsh"
-        echo "  2. Open nvim to install plugins:  nvim"
-        echo
-        echo "  Optional components (not installed by default):"
-        echo
-        echo "    Git config (.gitconfig, .gitignore):"
-        echo "      $conf_dir/install.sh git"
-        echo
-        echo "    Zed editor settings:"
-        echo "      $conf_dir/install.sh zed"
-        echo "======================================================================"
-    fi
-
-    echo
-    echo "======================================================================"
-    print_success "Done!"
-    echo "======================================================================"
-}
-
-# Check if running with sudo (we don't want that for most operations)
-if [[ $EUID -eq 0 && -z "$SUDO_USER" ]]; then
-    print_error "Please don't run this script as root. It will use sudo when needed."
+if [[ $EUID -eq 0 && -z "${SUDO_USER:-}" ]]; then
+    echo "Please don't run this script as root. It will use sudo when needed."
     exit 1
 fi
 
-# Run main function
-main "$@"
+CONF_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+INSTALLERS="$CONF_DIR/installers"
+
+# ── Step registry ─────────────────────────────────────────
+# Maps short name → script filename
+declare -A STEP_SCRIPT=(
+    [prerequisites]="00-prerequisites.sh"
+    [zsh]="01-zsh.sh"
+    [oh-my-zsh]="02-oh-my-zsh.sh"
+    [nvm]="03-nvm.sh"
+    [cli-tools]="04-cli-tools.sh"
+    [dev-tools]="05-dev-tools.sh"
+    [zsh-config]="06-zsh-config.sh"
+    [vim-config]="07-vim-config.sh"
+    [nvim-config]="08-nvim-config.sh"
+    [eslint-config]="09-eslint-config.sh"
+    [sys-tools]="10-sys-tools.sh"
+    [git-config]="11-git-config.sh"
+    [zed-config]="12-zed-config.sh"
+)
+
+REQUIRED_STEPS=(prerequisites zsh oh-my-zsh nvm cli-tools dev-tools
+                zsh-config vim-config nvim-config eslint-config sys-tools)
+OPTIONAL_STEPS=(git-config zed-config)
+
+# ── Colors (minimal; each script has its own) ─────────────
+BOLD='\033[1m'
+CYAN='\033[0;36m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+NC='\033[0m'
+
+_banner() {
+    echo
+    echo -e "${BOLD}${CYAN}=====================================================================${NC}"
+    echo -e "${BOLD}  $1${NC}"
+    echo -e "${BOLD}${CYAN}=====================================================================${NC}"
+}
+
+_run_step() {
+    local name=$1
+    local script="$INSTALLERS/${STEP_SCRIPT[$name]}"
+    if [ ! -f "$script" ]; then
+        echo -e "  ${YELLOW}⚠${NC} Script not found: $script"
+        return 1
+    fi
+    bash "$script"
+}
+
+_prompt_step() {
+    local name=$1
+    printf "\n  Install %-18s? [Y/n] " "$name"
+    read -r answer </dev/tty
+    case "${answer:-y}" in
+        [Yy]*|"") return 0 ;;
+        *)         return 1 ;;
+    esac
+}
+
+# ── Mode: selective (named args) ─────────────────────────
+if [[ $# -gt 0 && "$1" != "-y" ]]; then
+    _banner "Selective install: $*"
+    for name in "$@"; do
+        if [[ -z "${STEP_SCRIPT[$name]+x}" ]]; then
+            echo "Unknown step: $name"
+            echo "Valid steps: ${!STEP_SCRIPT[*]}"
+            exit 1
+        fi
+        _run_step "$name"
+    done
+    echo
+    echo -e "${GREEN}Done.${NC}"
+    exit 0
+fi
+
+# ── Mode: auto (-y) ───────────────────────────────────────
+if [[ "${1:-}" == "-y" ]]; then
+    _banner "Automatic install (all required steps)"
+
+    for name in "${REQUIRED_STEPS[@]}"; do
+        _run_step "$name"
+    done
+
+    echo
+    echo -e "${BOLD}${CYAN}=====================================================================${NC}"
+    echo -e "${BOLD}  Optional components (skipped — install individually if needed)${NC}"
+    echo -e "${BOLD}${CYAN}=====================================================================${NC}"
+    echo
+    echo "  Git config (.gitconfig, .gitignore):"
+    echo "    $CONF_DIR/install.sh git-config"
+    echo
+    echo "  Zed editor settings:"
+    echo "    $CONF_DIR/install.sh zed-config"
+    echo
+    echo -e "${BOLD}  Next steps:${NC}"
+    echo "    1. Restart your terminal or run: exec zsh"
+    echo "    2. Open nvim to bootstrap plugins: nvim"
+    echo
+    echo -e "${GREEN}Done.${NC}"
+    exit 0
+fi
+
+# ── Mode: interactive (no args) ──────────────────────────
+_banner "Interactive install — you will be prompted for each step"
+
+all_steps=("${REQUIRED_STEPS[@]}" "${OPTIONAL_STEPS[@]}")
+
+for name in "${all_steps[@]}"; do
+    if _prompt_step "$name"; then
+        _run_step "$name"
+    else
+        echo -e "  ${YELLOW}⊘${NC} Skipped: $name"
+    fi
+done
+
+echo
+echo -e "${BOLD}  Next steps:${NC}"
+echo "    1. Restart your terminal or run: exec zsh"
+echo "    2. Open nvim to bootstrap plugins: nvim"
+echo
+echo -e "${GREEN}Done.${NC}"
