@@ -26,22 +26,27 @@ CONF_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 INSTALLERS="$CONF_DIR/installers"
 
 # ── Step registry ─────────────────────────────────────────
-# Maps short name → script filename
-declare -A STEP_SCRIPT=(
-    [prerequisites]="00-prerequisites.sh"
-    [zsh]="01-zsh.sh"
-    [oh-my-zsh]="02-oh-my-zsh.sh"
-    [nvm]="03-nvm.sh"
-    [cli-tools]="04-cli-tools.sh"
-    [dev-tools]="05-dev-tools.sh"
-    [zsh-config]="06-zsh-config.sh"
-    [vim-config]="07-vim-config.sh"
-    [nvim-config]="08-nvim-config.sh"
-    [eslint-config]="09-eslint-config.sh"
-    [sys-tools]="10-sys-tools.sh"
-    [git-config]="11-git-config.sh"
-    [zed-config]="12-zed-config.sh"
-)
+# bash 3.2 (macOS default) has no associative arrays; use a case function instead.
+_step_script() {
+    case "$1" in
+        prerequisites)  echo "00-prerequisites.sh" ;;
+        zsh)            echo "01-zsh.sh" ;;
+        oh-my-zsh)      echo "02-oh-my-zsh.sh" ;;
+        nvm)            echo "03-nvm.sh" ;;
+        cli-tools)      echo "04-cli-tools.sh" ;;
+        dev-tools)      echo "05-dev-tools.sh" ;;
+        zsh-config)     echo "06-zsh-config.sh" ;;
+        vim-config)     echo "07-vim-config.sh" ;;
+        nvim-config)    echo "08-nvim-config.sh" ;;
+        eslint-config)  echo "09-eslint-config.sh" ;;
+        sys-tools)      echo "10-sys-tools.sh" ;;
+        git-config)     echo "11-git-config.sh" ;;
+        zed-config)     echo "12-zed-config.sh" ;;
+        *)              echo "" ;;
+    esac
+}
+
+VALID_STEPS="prerequisites zsh oh-my-zsh nvm cli-tools dev-tools zsh-config vim-config nvim-config eslint-config sys-tools git-config zed-config"
 
 REQUIRED_STEPS=(prerequisites zsh oh-my-zsh nvm cli-tools dev-tools
                 zsh-config vim-config nvim-config eslint-config sys-tools)
@@ -63,7 +68,7 @@ _banner() {
 
 _run_step() {
     local name=$1
-    local script="$INSTALLERS/${STEP_SCRIPT[$name]}"
+    local script="$INSTALLERS/$(_step_script "$name")"
     if [ ! -f "$script" ]; then
         echo -e "  ${YELLOW}⚠${NC} Script not found: $script"
         return 1
@@ -91,9 +96,9 @@ _prompt_step() {
 if [[ $# -gt 0 && "$1" != "-y" ]]; then
     _banner "Selective install: $*"
     for name in "$@"; do
-        if [[ -z "${STEP_SCRIPT[$name]+x}" ]]; then
+        if [[ -z "$(_step_script "$name")" ]]; then
             echo "Unknown step: $name"
-            echo "Valid steps: ${!STEP_SCRIPT[*]}"
+            echo "Valid steps: $VALID_STEPS"
             exit 1
         fi
         _run_step "$name"
