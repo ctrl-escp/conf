@@ -33,13 +33,17 @@ case $DISTRO in
 
   # ────────────────────────── macOS ──────────────────────
   macos)
-    for tool in fzf bat eza fd ripgrep tree-sitter; do
-        if ! command_exists "$tool"; then
-            print_installing "brew install $tool"
-            brew install "$tool"
-            _verify_tool "$tool"
+    # pkg:binary — brew package name may differ from the installed binary name
+    local pairs="fzf:fzf bat:bat eza:eza fd:fd ripgrep:rg tree-sitter:tree-sitter"
+    for pair in $pairs; do
+        pkg="${pair%%:*}"
+        bin="${pair##*:}"
+        if ! command_exists "$bin"; then
+            print_installing "brew install $pkg"
+            brew install "$pkg"
+            _verify_tool "$pkg" "$bin"
         else
-            _check_tool "$tool"
+            _check_tool "$pkg" "$bin"
         fi
     done
 
