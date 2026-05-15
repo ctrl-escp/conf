@@ -212,7 +212,7 @@ local plugin_specs = {
           openai_compatible = {
             model     = "qwen2.5-coder:7b",
             end_point = "http://localhost:11434/v1/chat/completions",
-            api_key   = "ollama",
+            api_key   = "TERM",
             name      = "Ollama",
             optional  = { max_tokens = 256, top_p = 0.9 },
           },
