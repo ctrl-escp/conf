@@ -68,20 +68,23 @@ bash installers/08-nvim-config.sh
 ### External tools
 
 
-| Tool                                         | macOS | Ubuntu/Debian      | Fedora | RHEL/CentOS |
-| -------------------------------------------- | ----- | ------------------ | ------ | ----------- |
-| Homebrew                                     | ✓     | —                  | —      | —           |
-| zsh                                          | brew  | apt                | dnf    | yum         |
-| oh-my-zsh                                    | ✓     | ✓                  | ✓      | ✓           |
-| NVM + Node LTS                               | ✓     | ✓                  | ✓      | ✓           |
-| zsh-autosuggestions                          | ✓     | ✓                  | ✓      | ✓           |
-| zsh-syntax-highlighting                      | ✓     | ✓                  | ✓      | ✓           |
-| Neovim 0.11+                                 | brew  | GitHub release     | —      | —           |
-| fzf, bat, eza, fd, ripgrep                   | brew  | apt                | dnf    | manual      |
-| tree-sitter-cli                              | brew  | npm (global)       | —      | —           |
-| Python LSP + formatters                      | ✓     | ✓                  | ✓      | ✓           |
-| typescript-language-server, eslint, prettier | ✓     | ✓                  | ✓      | ✓           |
-| shellcheck                                   | brew  | apt                | dnf    | —           |
+| Tool                                         | macOS               | Ubuntu/Debian                          | Fedora | RHEL/CentOS |
+| -------------------------------------------- | ------------------- | -------------------------------------- | ------ | ----------- |
+| Homebrew                                     | ✓ (prerequisites)   | —                                      | —      | —           |
+| git, curl, wget, gpg                         | Xcode CLT / brew    | apt                                    | dnf    | yum         |
+| zsh                                          | brew                | apt                                    | dnf    | yum         |
+| oh-my-zsh                                    | ✓                   | ✓                                      | ✓      | ✓           |
+| NVM + Node LTS                               | ✓                   | ✓                                      | ✓      | ✓           |
+| zsh-autosuggestions                          | ✓                   | ✓                                      | ✓      | ✓           |
+| zsh-syntax-highlighting                      | ✓                   | ✓                                      | ✓      | ✓           |
+| Neovim 0.11+                                 | brew                | GitHub release                         | dnf    | —           |
+| fzf, eza, ripgrep (`rg`)                     | brew                | apt                                    | dnf    | manual      |
+| bat                                          | brew                | apt as `batcat`; symlinked to `~/.local/bin/bat` | dnf | manual |
+| fd                                           | brew                | apt as `fdfind`; symlinked to `~/.local/bin/fd`  | dnf | manual |
+| tree-sitter-cli                              | brew                | npm (global)                           | —      | —           |
+| Python LSP + formatters                      | pip --user          | pip --user (pip installed via apt)     | pip --user | pip --user |
+| typescript-language-server, eslint, prettier | npm (global)        | npm (global)                           | npm (global) | npm (global) |
+| shellcheck                                   | brew                | apt                                    | dnf    | —           |
 
 
 ### Configuration files
@@ -90,19 +93,19 @@ bash installers/08-nvim-config.sh
 | What                           | Deployed to                                          |
 | ------------------------------ | ---------------------------------------------------- |
 | `zsh/.zshrc2`                  | `~/.zshrc2` (always replaced)                        |
-| `zsh/.envvars`                 | `~/` (always replaced)                               |
+| `zsh/.envvars`                 | `~/` (copied once if missing or empty)               |
 | `zsh/.aliases-global`          | `~/` (always replaced)                               |
 | `zsh/.aliases`                 | `~/` (created once; glob import injected if missing) |
 | `zsh/.aliases-local`           | `~/` (created once; not overwritten on update)       |
 | oh-my-zsh theme                | `~/.oh-my-zsh/custom/themes/`                        |
 | `vim/.vimrc` + runtime         | `~/.vimrc`, `~/.vim/`                                |
 | `nvim/nvim-conf.lua`           | `~/.config/nvim/lua/nvim-conf.lua` (always replaced) |
-| `git/.gitconfig`, `.gitignore` | `~/` (optional; `./install.sh git`; created once)    |
+| `git/.gitconfig`, `.gitignore` | `~/` (optional; `./install.sh git-config`; created once) |
 | `eslint/`                      | `~/.config/eslint/` + `npm install`                  |
 | `sys-tools/*.sh`               | symlinked into `/usr/local/bin/`                     |
 
 
-### Optional: Zed (`./install.sh zed`)
+### Optional: Zed (`./install.sh zed-config`)
 
 
 | What                | Deployed to                                     |
