@@ -146,6 +146,8 @@ local plugin_specs = {
   {
     "mfussenegger/nvim-lint",
     config = function()
+      require("lint").linters.flake8.cmd = "python3"
+      require("lint").linters.flake8.args = vim.list_extend({ "-m", "flake8" }, require("lint").linters.flake8.args)
       require("lint").linters_by_ft = {
         python     = { "flake8" },
         javascript = { "eslint_d" },
