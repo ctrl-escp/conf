@@ -38,14 +38,14 @@ if [ -f "$ZSH_SRC/.envvars" ]; then
 fi
 
 # ── .aliases (inject glob import if missing) ──────────────
-GLOB_LINE='source ~/.aliases-*'
+GLOB_LINE='for f in ~/.aliases-*(N); do source "$f"; done'
 if [ ! -f ~/.aliases ]; then
     cp "$ZSH_SRC/.aliases" ~/.aliases
     print_success "Copied .aliases"
-elif grep -qF "$GLOB_LINE" ~/.aliases; then
+elif grep -qF 'aliases-*' ~/.aliases; then
     print_already ".aliases (glob import present)"
 else
-    { echo; echo "$GLOB_LINE > /dev/null 2>&1"; } >> ~/.aliases
+    { echo; echo "$GLOB_LINE"; } >> ~/.aliases
     print_success "Injected glob import into existing .aliases"
 fi
 
