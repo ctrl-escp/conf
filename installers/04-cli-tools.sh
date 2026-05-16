@@ -34,7 +34,7 @@ case $DISTRO in
   # ────────────────────────── macOS ──────────────────────
   macos)
     # pkg:binary — brew package name may differ from the installed binary name
-    local pairs="fzf:fzf bat:bat eza:eza fd:fd ripgrep:rg tree-sitter:tree-sitter"
+    pairs="fzf:fzf bat:bat eza:eza fd:fd ripgrep:rg tree-sitter:tree-sitter"
     for pair in $pairs; do
         pkg="${pair%%:*}"
         bin="${pair##*:}"
@@ -75,8 +75,10 @@ case $DISTRO in
 
     if command_exists fdfind; then
         print_verified "fd ($(fdfind --version))"
-        [ -e ~/.local/bin/fd ] || ln -s "$(which fdfind)" ~/.local/bin/fd && \
+        if [ ! -e ~/.local/bin/fd ]; then
+            ln -s "$(which fdfind)" ~/.local/bin/fd
             print_success "Symlinked fdfind → ~/.local/bin/fd"
+        fi
     else
         print_failed "fdfind missing after apt install"; exit 1
     fi
@@ -89,8 +91,10 @@ case $DISTRO in
 
     if command_exists batcat; then
         print_verified "bat ($(batcat --version))"
-        [ -e ~/.local/bin/bat ] || ln -s "$(which batcat)" ~/.local/bin/bat && \
+        if [ ! -e ~/.local/bin/bat ]; then
+            ln -s "$(which batcat)" ~/.local/bin/bat
             print_success "Symlinked batcat → ~/.local/bin/bat"
+        fi
     else
         print_failed "batcat missing after apt install"; exit 1
     fi
